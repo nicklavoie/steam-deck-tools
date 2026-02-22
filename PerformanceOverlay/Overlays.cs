@@ -156,8 +156,8 @@ namespace PerformanceOverlay
                         },
                         new Entry
                         {
-                            Text = "<C2><APP><C>",
-                            Nested = { new Entry("<C4><A4><FR><C><A><A1><S1><C4> FPS<C><S><A>") }
+                            Text = "<C2>[OBJ_FPS_SMALL]<C><S1> <C4><A0><FR><A><A1> FPS<A><S><C>",
+                            Include = { OverlayMode.Detail }
                         },
                         new Entry
                         {
@@ -208,13 +208,6 @@ namespace PerformanceOverlay
                                 new Entry("<A5>{FAN_RPM}<A><A1><S1> RPM<S><A>"),
                             }
                         },
-                        new Entry("<C2><APP><C>\t  ")
-                        {
-                            Nested = {
-                                new Entry("<A5><C4><FR><C><A><A1><S1><C4> FPS<C><S><A>"),
-                                new Entry("<A5><C4><FT><C><A><A1><S1><C4> ms<C><S><A>"),
-                            }
-                        },
                         new Entry("<C1>BAT<C>\t  ") {
                             Nested = {
                                 new Entry("<A5>{BATT_%}<A><A1><S1> %<S><A>"),
@@ -223,6 +216,8 @@ namespace PerformanceOverlay
                                 new Entry("<A5>C{BATT_CHARGE_W}<A><A1><S1> W<S><A>") { IgnoreMissing = true }
                             }
                         },
+                        new Entry("<C2><S1>FPS<S>"),
+                        new Entry("[OBJ_FPS_LARGE]<S1> <A0><FR><A><A1> FPS<A><S><C>"),
                         new Entry("<C2><S1>Frametime<S>"),
                         new Entry("[OBJ_FT_LARGE]<S1> <A0><FT><A><A1> ms<A><S><C>"),
                     },
