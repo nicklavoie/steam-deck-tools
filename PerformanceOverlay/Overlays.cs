@@ -131,7 +131,9 @@ namespace PerformanceOverlay
                             Nested =
                             {
                                 new Entry("<C4><A3>{GPU_%}<A><A1><S1> %<S><A>"),
-                                new Entry("<C4><A4>{GPU_W}<A><A1><S1> W<S><A>"),
+                                new Entry("<C4><A4>{GPU_W}<A><A1><S1> W<S><A>") { Include = { OverlayMode.Minimal } },
+                                new Entry("<C4><A4>{GPU_MB}<A><A1><S1> MB<S><A>") { IgnoreMissing = true, Include = { OverlayMode.Detail } },
+                                new Entry("<C4><A4>{GPU_MHZ}<A><A1><S1> MHz<S><A>") { IgnoreMissing = true, Include = { OverlayMode.Detail } },
                                 new Entry("<C4><A4>{GPU_T}<A><A1><S1> C<S><A>") { IgnoreMissing = true, Include = { OverlayMode.Detail } }
                             }
                         },
@@ -141,20 +143,16 @@ namespace PerformanceOverlay
                             Nested =
                             {
                                 new Entry("<C4><A3>{CPU_%}<A><A1><S1> %<S><A>"),
-                                new Entry("<C4><A4>{CPU_W}<A><A1><S1> W<S><A>"),
-                                new Entry("<C4><A4>{CPU_T}<A><A1><S1> C<S><A>") { IgnoreMissing = true, Include = { OverlayMode.Detail } }
+                                new Entry("<C4><A4>{CPU_W}<A><A1><S1> W<S><A>") { Include = { OverlayMode.Minimal } },
+                                new Entry("<C4><A4>{CPU_T}<A><A1><S1> C<S><A>") { IgnoreMissing = true, Include = { OverlayMode.Detail } },
+                                new Entry("<C4><A5>{MEM_GB}<A><A1><S1> GiB<S><A>") { Include = { OverlayMode.Detail } }
                             }
                         },
                         new Entry
                         {
                             Text = "<C1>RAM<C>",
-                            Nested = { new Entry("<C4><A5>{MEM_GB}<A><A1><S1> GiB<S><A>") }
-                        },
-                        new Entry
-                        {
-                            Text = "<C1>FAN<C>",
-                            Nested = { new Entry("<C4><A5>{FAN_RPM}<A><A1><S1> RPM<S><A>") },
-                            Include = { OverlayMode.Detail }
+                            Nested = { new Entry("<C4><A5>{MEM_GB}<A><A1><S1> GiB<S><A>") },
+                            Include = { OverlayMode.Minimal }
                         },
                         new Entry
                         {
