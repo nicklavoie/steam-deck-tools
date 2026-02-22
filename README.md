@@ -25,6 +25,22 @@ dotnet build PerformanceOverlay/PerformanceOverlay.csproj --configuration Releas
 
 GitHub Actions is configured to build only `PerformanceOverlay` and publish a ZIP artifact.
 
+## Install latest GitHub build artifact (PowerShell)
+
+To update an existing install directory with files from the latest successful `PerformanceOverlay` GitHub Actions build artifact:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/install_from_github_build.ps1 -DestinationDir "C:\SteamDeckTools"
+```
+
+Useful options:
+
+- `-Repository owner/repo` (default: `nicklavoie/steam-deck-tools`)
+- `-Ref <branch>` (default: `main`)
+- `-ArtifactNamePattern "PerformanceOverlay-*.zip"`
+- `-CleanDestination` (remove destination contents before copying)
+- `-GitHubToken <token>` (or set `GITHUB_TOKEN`) for higher API rate limits
+
 ## Credits
 
 Based on the original Steam Deck Tools project by Kamil Trzciński.
