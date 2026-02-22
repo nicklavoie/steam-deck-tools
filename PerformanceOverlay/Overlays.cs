@@ -156,11 +156,6 @@ namespace PerformanceOverlay
                         },
                         new Entry
                         {
-                            Text = "<C2><APP><C>",
-                            Nested = { new Entry("<C4><A4><FR><C><A><A1><S1><C4> FPS<C><S><A>") }
-                        },
-                        new Entry
-                        {
                             Text = "<C2>[OBJ_FPS_SMALL]<C><S1> <C4><A0><FR><A><A1> FPS<A><S><C>",
                             Include = { OverlayMode.Detail }
                         },
@@ -211,13 +206,6 @@ namespace PerformanceOverlay
                         {
                             Nested = {
                                 new Entry("<A5>{FAN_RPM}<A><A1><S1> RPM<S><A>"),
-                            }
-                        },
-                        new Entry("<C2><APP><C>\t  ")
-                        {
-                            Nested = {
-                                new Entry("<A5><C4><FR><C><A><A1><S1><C4> FPS<C><S><A>"),
-                                new Entry("<A5><C4><FT><C><A><A1><S1><C4> ms<C><S><A>"),
                             }
                         },
                         new Entry("<C1>BAT<C>\t  ") {
