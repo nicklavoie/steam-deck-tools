@@ -282,7 +282,9 @@ namespace PerformanceOverlay
                     osd = new OSD("PerformanceOverlay");
 
                 uint offset = 0;
+                osdEmbedGraph(ref offset, ref osdOverlay, "[OBJ_FPS_SMALL]", -8, -1, 1, 0, 200.0f, EMBEDDED_OBJECT_GRAPH.FLAG_FRAMERATE);
                 osdEmbedGraph(ref offset, ref osdOverlay, "[OBJ_FT_SMALL]", -8, -1, 1, 0, 50000.0f, EMBEDDED_OBJECT_GRAPH.FLAG_FRAMETIME);
+                osdEmbedGraph(ref offset, ref osdOverlay, "[OBJ_FPS_LARGE]", -32, -2, 1, 0, 200.0f, EMBEDDED_OBJECT_GRAPH.FLAG_FRAMERATE);
                 osdEmbedGraph(ref offset, ref osdOverlay, "[OBJ_FT_LARGE]", -32, -2, 1, 0, 50000.0f, EMBEDDED_OBJECT_GRAPH.FLAG_FRAMETIME);
 
                 osd.Update(osdOverlay);

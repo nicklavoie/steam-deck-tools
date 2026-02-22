@@ -161,6 +161,11 @@ namespace PerformanceOverlay
                         },
                         new Entry
                         {
+                            Text = "<C2>[OBJ_FPS_SMALL]<C><S1> <C4><A0><FR><A><A1> FPS<A><S><C>",
+                            Include = { OverlayMode.Detail }
+                        },
+                        new Entry
+                        {
                             Text = "<C2>[OBJ_FT_SMALL]<C><S1> <C4><A0><FT><A><A1> ms<A><S><C>",
                             Include = { OverlayMode.Detail }
                         }
@@ -223,6 +228,8 @@ namespace PerformanceOverlay
                                 new Entry("<A5>C{BATT_CHARGE_W}<A><A1><S1> W<S><A>") { IgnoreMissing = true }
                             }
                         },
+                        new Entry("<C2><S1>FPS<S>"),
+                        new Entry("[OBJ_FPS_LARGE]<S1> <A0><FR><A><A1> FPS<A><S><C>"),
                         new Entry("<C2><S1>Frametime<S>"),
                         new Entry("[OBJ_FT_LARGE]<S1> <A0><FT><A><A1> ms<A><S><C>"),
                     },
