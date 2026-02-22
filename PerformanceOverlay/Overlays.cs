@@ -132,6 +132,7 @@ namespace PerformanceOverlay
                             {
                                 new Entry("<C4><A3>{GPU_%}<A><A1><S1> %<S><A>"),
                                 new Entry("<C4><A4>{GPU_W}<A><A1><S1> W<S><A>"),
+                                new Entry("<C4><A4>{GPU_MB}<A><A1><S1> MB<S><A>") { IgnoreMissing = true, Include = { OverlayMode.Detail } },
                                 new Entry("<C4><A4>{GPU_T}<A><A1><S1> C<S><A>") { IgnoreMissing = true, Include = { OverlayMode.Detail } }
                             }
                         },
