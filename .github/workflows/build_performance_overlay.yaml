@@ -1,0 +1,56 @@
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/build_performance_overlay.yaml"
+      - "PerformanceOverlay/**"
+      - "CommonHelpers/**"
+      - "ExternalHelpers/**"
+      - "VERSION"
+  pull_request:
+    paths:
+      - ".github/workflows/build_performance_overlay.yaml"
+      - "PerformanceOverlay/**"
+      - "CommonHelpers/**"
+      - "ExternalHelpers/**"
+      - "VERSION"
+
+env:
+  DOTNET_VERSION: "6.0.x"
+  APP_NAME: PerformanceOverlay
+
+jobs:
+  build-performance-overlay:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Set RELEASE_VERSION
+        shell: pwsh
+        run: |
+          $majorVersion = (Get-Content VERSION -Raw).Trim()
+          $releaseVersion = "$majorVersion.${{ github.run_number }}"
+          "RELEASE_VERSION=$releaseVersion" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Restore PerformanceOverlay dependencies
+        run: dotnet restore PerformanceOverlay/PerformanceOverlay.csproj
+
+      - name: Build PerformanceOverlay
+        run: dotnet build PerformanceOverlay/PerformanceOverlay.csproj --configuration Release --output "${{ env.APP_NAME }}-${{ env.RELEASE_VERSION }}/" "/property:Version=${{ env.RELEASE_VERSION }}" "/property:ExtraDefineConstants=PRODUCTION_BUILD"
+
+      - name: Create zip artifact
+        shell: pwsh
+        run: |
+          Compress-Archive -Path "${{ env.APP_NAME }}-${{ env.RELEASE_VERSION }}\*" -DestinationPath "${{ env.APP_NAME }}-${{ env.RELEASE_VERSION }}.zip"
+
+      - name: Upload PerformanceOverlay zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APP_NAME }}-${{ env.RELEASE_VERSION }}.zip
+          path: ${{ env.APP_NAME }}-${{ env.RELEASE_VERSION }}.zip
+          retention-days: 14

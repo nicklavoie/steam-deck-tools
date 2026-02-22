@@ -92,9 +92,6 @@ namespace PerformanceOverlay
             missingRTSSItem.Click += delegate { Dependencies.OpenLink(Dependencies.RTSSURL); };
             contextMenu.Opening += delegate { missingRTSSItem.Visible = !Dependencies.EnsureRTSS(null); };
 
-            var checkForUpdatesItem = contextMenu.Items.Add("&Check for Updates");
-            checkForUpdatesItem.Click += delegate { Instance.RunUpdater(TitleWithVersion, true); };
-
             var helpItem = contextMenu.Items.Add("&Help");
             helpItem.Click += delegate { Dependencies.OpenLink(Dependencies.SDTURL); };
 
