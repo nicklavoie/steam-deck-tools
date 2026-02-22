@@ -35,6 +35,13 @@ namespace PerformanceOverlay
             set { Set("ShowOSD", value); }
         }
 
+
+        public bool ShowOnDesktop
+        {
+            get { return Get<bool>("ShowOnDesktop", false); }
+            set { Set("ShowOnDesktop", value); }
+        }
+
         public bool EnableFullOnPowerControl
         {
             get { return Get<bool>("EnableFullOnPowerControl", false); }
