@@ -14,7 +14,6 @@ namespace PerformanceOverlay
         RTSSSharedMemoryNET.OSD? osd;
         System.Windows.Forms.ContextMenuStrip contextMenu;
         ToolStripMenuItem showItem;
-        ToolStripMenuItem showOnDesktopItem;
         System.Windows.Forms.NotifyIcon notifyIcon;
         System.Windows.Forms.Timer osdTimer;
         Sensors sensors = new Sensors();
@@ -54,16 +53,6 @@ namespace PerformanceOverlay
             showItem.Click += ShowItem_Click;
             showItem.Checked = Settings.Default.ShowOSD;
             contextMenu.Items.Add(showItem);
-
-            showOnDesktopItem = new ToolStripMenuItem("Always show on &desktop");
-            showOnDesktopItem.Click += delegate
-            {
-                Settings.Default.ShowOnDesktop = !Settings.Default.ShowOnDesktop;
-                updateContextItems(contextMenu);
-            };
-            showOnDesktopItem.Checked = Settings.Default.ShowOnDesktop;
-            contextMenu.Items.Add(showOnDesktopItem);
-
             contextMenu.Items.Add(new ToolStripSeparator());
             foreach (var mode in Enum.GetValues<OverlayMode>())
             {
@@ -169,7 +158,6 @@ namespace PerformanceOverlay
             }
 
             showItem.Checked = Settings.Default.ShowOSD;
-            showOnDesktopItem.Checked = Settings.Default.ShowOnDesktop;
         }
 
         private void NotifyIcon_Click(object? sender, EventArgs e)
@@ -264,13 +252,6 @@ namespace PerformanceOverlay
             }
 
             if (!Settings.Default.ShowOSD)
-            {
-                osdTimer.Interval = 1000;
-                osdReset();
-                return;
-            }
-
-            if (!Settings.Default.ShowOnDesktop && !OSDHelpers.IsOSDForeground())
             {
                 osdTimer.Interval = 1000;
                 osdReset();
