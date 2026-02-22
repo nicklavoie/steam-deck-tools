@@ -4,7 +4,7 @@ namespace CommonHelpers
 {
     public class AntiCheatSettings : BaseSettings
     {
-        public const String HelpURL = "https://steam-deck-tools.ayufan.dev/#anti-cheat-and-antivirus-software";
+        public const String HelpURL = "https://github.com/nicklavoie/steam-deck-tools";
 
         public static readonly AntiCheatSettings Default = new AntiCheatSettings();
 

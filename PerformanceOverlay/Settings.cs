@@ -35,12 +35,6 @@ namespace PerformanceOverlay
             set { Set("ShowOSD", value); }
         }
 
-        public bool EnableFullOnPowerControl
-        {
-            get { return Get<bool>("EnableFullOnPowerControl", false); }
-            set { Set("EnableFullOnPowerControl", value); }
-        }
-
         public bool EnableKernelDrivers
         {
             get { return Get<bool>("EnableKernelDrivers", false); }

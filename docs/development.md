@@ -1,5 +1,7 @@
 # Development
 
-It should be enough to run `scripts/build.bat` to see binaries in `build-release/`.
+Run `scripts/build.bat` to build `PerformanceOverlay` into `build-release/`.
 
-You might also run `scripts/test_debug.bat` which will build and run built version.
+To build directly:
+
+`dotnet build PerformanceOverlay/PerformanceOverlay.csproj --configuration Release`

@@ -40,7 +40,6 @@ namespace PerformanceOverlay
 
             SharedData_Update();
             Instance.Open(TitleWithVersion, Settings.Default.EnableKernelDrivers, "Global\\PerformanceOverlay");
-            Instance.RunUpdater(TitleWithVersion);
 
             if (Instance.WantsRunOnStartup)
                 startupManager.Startup = true;
@@ -260,13 +259,6 @@ namespace PerformanceOverlay
             sensors.Update();
 
             var osdMode = Settings.Default.OSDMode;
-
-            // If Power Control is visible use temporarily full OSD
-            if (Settings.Default.EnableFullOnPowerControl)
-            {
-                if (SharedData<PowerControlSetting>.GetExistingValue(out var value) && value.Current == PowerControlVisible.Yes)
-                    osdMode = OverlayMode.Full;
-            }
 
             var osdOverlay = Overlays.GetOSD(osdMode, sensors);
 

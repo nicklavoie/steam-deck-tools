@@ -4,18 +4,16 @@
     <TargetFramework>net6.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
+    <UseWPF>true</UseWPF>
     <ImplicitUsings>enable</ImplicitUsings>
     <DefineConstants Condition=" '$(ExtraDefineConstants)' != '' ">$(DefineConstants);$(ExtraDefineConstants)</DefineConstants>
   </PropertyGroup>
-
   <Target Name="SetSourceRevisionId" BeforeTargets="InitializeSourceControlInformation">
     <Exec Command="git describe --long --always --dirty --exclude=* --abbrev=8" ConsoleToMSBuild="True" IgnoreExitCode="True">
       <Output PropertyName="SourceRevisionId" TaskParameter="ConsoleOutput" />
     </Exec>
   </Target>
-
   <ItemGroup>
-    <PackageReference Include="Autoupdater.NET.Official" Version="1.7.6" />
     <PackageReference Include="LibreHardwareMonitorLib" Version="0.9.1" />
     <PackageReference Include="Sentry" Version="3.24.0" />
     <PackageReference Include="TaskScheduler" Version="2.10.1" />

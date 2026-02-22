@@ -1,3 +1,46 @@
+# ROG Ally X Performance Overlay (Fork)
+
+This repository is a personal fork of Steam Deck Tools, customized for my ROG Ally X setup and workflow.
+
+## Scope
+
+This fork is focused on `PerformanceOverlay` only.
+
+Included projects:
+
+- `PerformanceOverlay`
+- `CommonHelpers`
+- `ExternalHelpers`
+
+The other original applications are intentionally not part of active development in this fork.
+
+## Build
+
+```powershell
+dotnet restore PerformanceOverlay/PerformanceOverlay.csproj
+dotnet build PerformanceOverlay/PerformanceOverlay.csproj --configuration Release
+```
+
+## CI
+
+GitHub Actions is configured to build only `PerformanceOverlay` and publish a ZIP artifact.
+
+## Credits
+
+Based on the original Steam Deck Tools project by Kamil Trzciński.
+
+## License
+
+This fork remains under the original project license:
+[Creative Commons Attribution-NonCommercial-ShareAlike (CC-BY-NC-SA)](http://creativecommons.org/licenses/by-nc-sa/4.0/).
+
+-------------------------------------------
+
+
+
+
+
+
 # (Windows) Steam Deck Tools
 
 [![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/ayufan/steam-deck-tools?label=stable&style=flat-square)](https://github.com/ayufan/steam-deck-tools/releases/latest)

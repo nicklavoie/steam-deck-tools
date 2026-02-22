@@ -1,11 +1,10 @@
-title: (Windows) Steam Deck Tools
+title: ROG Ally X Performance Overlay
 description: >-
-  Fan, Overlay, Power Control and Steam Controller for Windows.
+  PerformanceOverlay fork for custom ROG Ally X usage.
 baseurl: ""
-url: https://steam-deck-tools.ayufan.dev # the base hostname & protocol for your site, e.g. http://example.com
-twitter_username: ayufanpl
-github_username: ayufan
-repository: ayufan/steam-deck-tools
+url: https://github.com/nicklavoie/steam-deck-tools
+github_username: nicklavoie
+repository: nicklavoie/steam-deck-tools
 
 include:
   - _redirects
