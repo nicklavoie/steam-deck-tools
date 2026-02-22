@@ -143,7 +143,7 @@ namespace PerformanceOverlay
                             Nested =
                             {
                                 new Entry("<C4><A3>{CPU_%}<A><A1><S1> %<S><A>"),
-                                new Entry("<C4><A4>{CPU_W}<A><A1><S1> W<S><A>") { Include = { OverlayMode.Minimal } },
+                                new Entry("<C4><A4>{CPU_W}<A><A1><S1> W<S><A>"),
                                 new Entry("<C4><A4>{CPU_T}<A><A1><S1> C<S><A>") { IgnoreMissing = true, Include = { OverlayMode.Detail } },
                                 new Entry("<C4><A5>{MEM_GB}<A><A1><S1> GiB<S><A>") { Include = { OverlayMode.Detail } }
                             }
