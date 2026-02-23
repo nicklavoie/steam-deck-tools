@@ -194,7 +194,7 @@ namespace SteamDeckToolsGameBarWidget
 
             try
             {
-                using (var mmf = MemoryMappedFile.OpenExisting(mapName))
+                using (var mmf = MemoryMappedFile.OpenExisting(mapName, MemoryMappedFileRights.Read))
                 using (var stream = mmf.CreateViewStream(0, payloadSize, MemoryMappedFileAccess.Read))
                 {
                     var buffer = new byte[payloadSize];
