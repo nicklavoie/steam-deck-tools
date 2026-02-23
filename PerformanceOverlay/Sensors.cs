@@ -41,7 +41,7 @@ namespace PerformanceOverlay
         {
             public delegate float? ValueDelegate();
 
-            public ValueDelegate Value { get; set; }
+            public ValueDelegate Value { get; set; } = () => null;
 
             public override string? GetValue(Sensors sensors)
             {
