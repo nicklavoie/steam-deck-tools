@@ -1,6 +1,5 @@
 using CommonHelpers;
-using RTSSSharedMemoryNET;
-using System.Diagnostics;
+using System.Linq;
 
 namespace PerformanceOverlay
 {
@@ -11,6 +10,12 @@ namespace PerformanceOverlay
         {
             Instance.WithSentry(() =>
             {
+                UriProtocolRegistration.EnsureRegistered();
+
+                var commandResult = OverlayCommandLine.HandleArgs(Environment.GetCommandLineArgs().Skip(1).ToArray());
+                if (commandResult == OverlayControlResult.HandledAndExit)
+                    return;
+
                 ApplicationConfiguration.Initialize();
 
                 using (var controller = new Controller())

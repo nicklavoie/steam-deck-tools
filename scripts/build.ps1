@@ -30,5 +30,5 @@ if ($lastVer) {
 }
 echo "nextVer: $nextVer"
 
-dotnet --list-sdks -or winget install Microsoft.DotNet.SDK.6
+dotnet --list-sdks -or winget install Microsoft.DotNet.SDK.8
 dotnet build PerformanceOverlay/PerformanceOverlay.csproj --configuration "$configuration" "/property:Version=$nextVer" --output "$path"

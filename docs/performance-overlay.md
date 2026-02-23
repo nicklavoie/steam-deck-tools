@@ -10,6 +10,27 @@ It currently registers two global hotkeys:
 - **Shift+F11** - enable performance overlay
 - **Alt+Shift+F11** - cycle to next performance overlay (and enable it)
 
+It also supports command URIs (used by the Xbox Game Bar widget in this fork):
+
+- `steamdecktools-performanceoverlay://mode/fps`
+- `steamdecktools-performanceoverlay://mode/fpswithbattery`
+- `steamdecktools-performanceoverlay://mode/battery`
+- `steamdecktools-performanceoverlay://mode/minimal`
+- `steamdecktools-performanceoverlay://mode/detail`
+- `steamdecktools-performanceoverlay://mode/full`
+- `steamdecktools-performanceoverlay://cycle`
+- `steamdecktools-performanceoverlay://show`
+- `steamdecktools-performanceoverlay://hide`
+- `steamdecktools-performanceoverlay://toggle`
+
+Equivalent command-line switches are available:
+
+- `--mode <fps|fpswithbattery|battery|minimal|detail|full>`
+- `--cycle`
+- `--show`
+- `--hide`
+- `--toggle`
+
 There are 5 modes of presentation:
 
 ## 1. FPS

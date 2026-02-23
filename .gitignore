@@ -5,7 +5,10 @@ obj/
 build-Release/
 build-Debug/
 .vscode/
+out/
 scripts/Redist/
 SteamDeckTools_Setup*.exe
 GameProfiles/
 ControllerProfiles/
+AppPackages/
+BundleArtifacts/

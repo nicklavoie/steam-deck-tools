@@ -1,11 +1,17 @@
+name: build-performance-overlay
+
 on:
   workflow_dispatch:
   push:
+    branches:
+      - main
     paths:
       - ".github/workflows/build_performance_overlay.yaml"
       - "PerformanceOverlay/**"
       - "CommonHelpers/**"
       - "ExternalHelpers/**"
+      - "XboxGameBarWidget/**"
+      - "scripts/install_gamebar_widget.ps1"
       - "VERSION"
   pull_request:
     paths:
@@ -13,14 +19,17 @@ on:
       - "PerformanceOverlay/**"
       - "CommonHelpers/**"
       - "ExternalHelpers/**"
+      - "XboxGameBarWidget/**"
+      - "scripts/install_gamebar_widget.ps1"
       - "VERSION"
 
 env:
-  DOTNET_VERSION: "6.0.x"
+  DOTNET_VERSION: "8.0.x"
   APP_NAME: PerformanceOverlay
+  WIDGET_NAME: SteamDeckToolsGameBarWidget
 
 jobs:
-  build-performance-overlay:
+  build:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -30,12 +39,43 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Set RELEASE_VERSION
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Set versions
         shell: pwsh
         run: |
           $majorVersion = (Get-Content VERSION -Raw).Trim()
           $releaseVersion = "$majorVersion.${{ github.run_number }}"
           "RELEASE_VERSION=$releaseVersion" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+          $segments = @($majorVersion.Split('.') | Where-Object { $_ -ne '' })
+          switch ($segments.Count) {
+            0 { $widgetVersion = "1.0.${{ github.run_number }}.0" }
+            1 { $widgetVersion = "$($segments[0]).0.${{ github.run_number }}.0" }
+            2 { $widgetVersion = "$($segments[0]).$($segments[1]).${{ github.run_number }}.0" }
+            default { $widgetVersion = "$($segments[0]).$($segments[1]).$($segments[2]).${{ github.run_number }}" }
+          }
+          "WIDGET_PACKAGE_VERSION=$widgetVersion" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+          $minTpv = [version]"10.0.18362.0"
+          $unionMetadataRoot = Join-Path ${env:ProgramFiles(x86)} "Windows Kits\10\UnionMetadata"
+          if (-not (Test-Path $unionMetadataRoot)) {
+            throw "UWP UnionMetadata folder not found at '$unionMetadataRoot'."
+          }
+
+          $detectedTpv = Get-ChildItem -Path $unionMetadataRoot -Directory |
+            Where-Object { $_.Name -match '^\d+\.\d+\.\d+\.\d+$' } |
+            Where-Object { [version]$_.Name -ge $minTpv } |
+            Sort-Object { [version]$_.Name } -Descending |
+            Select-Object -First 1 -ExpandProperty Name
+
+          if (-not $detectedTpv) {
+            throw "No installed UWP TargetPlatformVersion >= $minTpv was found under '$unionMetadataRoot'."
+          }
+
+          Write-Host "Using UWP TargetPlatformVersion: $detectedTpv"
+          "UWP_TPV=$detectedTpv" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Restore PerformanceOverlay dependencies
         run: dotnet restore PerformanceOverlay/PerformanceOverlay.csproj
@@ -43,14 +83,58 @@ jobs:
       - name: Build PerformanceOverlay
         run: dotnet build PerformanceOverlay/PerformanceOverlay.csproj --configuration Release --output "${{ env.APP_NAME }}-${{ env.RELEASE_VERSION }}/" "/property:Version=${{ env.RELEASE_VERSION }}" "/property:ExtraDefineConstants=PRODUCTION_BUILD"
 
-      - name: Create zip artifact
+      - name: Create PerformanceOverlay zip artifact
         shell: pwsh
         run: |
           Compress-Archive -Path "${{ env.APP_NAME }}-${{ env.RELEASE_VERSION }}\*" -DestinationPath "${{ env.APP_NAME }}-${{ env.RELEASE_VERSION }}.zip"
+
+      - name: Build Game Bar widget package
+        shell: pwsh
+        run: |
+          $manifestPath = "XboxGameBarWidget/Package.appxmanifest"
+          [xml]$manifestXml = Get-Content -Path $manifestPath
+          $manifestNs = New-Object System.Xml.XmlNamespaceManager($manifestXml.NameTable)
+          $manifestNs.AddNamespace("appx", "http://schemas.microsoft.com/appx/manifest/foundation/windows10")
+          $identityNode = $manifestXml.SelectSingleNode("/appx:Package/appx:Identity", $manifestNs)
+          if (-not $identityNode) {
+            throw "Could not locate Identity node in '$manifestPath'."
+          }
+
+          $identityNode.SetAttribute("Publisher", "CN=SteamDeckTools, OID.2.25.311729368913984317654407730594956997722=1")
+          $identityNode.SetAttribute("Version", "${{ env.WIDGET_PACKAGE_VERSION }}")
+          $manifestXml.Save($manifestPath)
+
+          $widgetPackageDir = Join-Path $PWD "${{ env.WIDGET_NAME }}-${{ env.RELEASE_VERSION }}"
+          New-Item -ItemType Directory -Path $widgetPackageDir -Force | Out-Null
+
+          msbuild XboxGameBarWidget\SteamDeckToolsGameBarWidget.csproj `
+            /restore `
+            /p:Configuration=Release `
+            /p:Platform=x64 `
+            /p:TargetPlatformVersion=${{ env.UWP_TPV }} `
+            /p:TargetPlatformMinVersion=10.0.18362.0 `
+            /p:AppxBundle=Never `
+            /p:UapAppxPackageBuildMode=SideloadOnly `
+            /p:AppxPackageDir="$widgetPackageDir\\" `
+            /p:AppxPackageSigningEnabled=false
+
+          Copy-Item scripts\install_gamebar_widget.ps1 (Join-Path $widgetPackageDir "install_gamebar_widget.ps1") -Force
+
+      - name: Create Game Bar widget zip artifact
+        shell: pwsh
+        run: |
+          Compress-Archive -Path "${{ env.WIDGET_NAME }}-${{ env.RELEASE_VERSION }}\*" -DestinationPath "${{ env.WIDGET_NAME }}-${{ env.RELEASE_VERSION }}.zip"
 
       - name: Upload PerformanceOverlay zip
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.APP_NAME }}-${{ env.RELEASE_VERSION }}.zip
           path: ${{ env.APP_NAME }}-${{ env.RELEASE_VERSION }}.zip
+          retention-days: 14
+
+      - name: Upload Game Bar widget zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.WIDGET_NAME }}-${{ env.RELEASE_VERSION }}.zip
+          path: ${{ env.WIDGET_NAME }}-${{ env.RELEASE_VERSION }}.zip
           retention-days: 14

@@ -39,7 +39,13 @@ namespace PerformanceOverlay
             contextMenu = new System.Windows.Forms.ContextMenuStrip(components);
 
             SharedData_Update();
-            Instance.Open(TitleWithVersion, Settings.Default.EnableKernelDrivers, "Global\\PerformanceOverlay");
+            var requestedKernelDrivers = Settings.Default.EnableKernelDrivers;
+            Instance.Open(TitleWithVersion, requestedKernelDrivers, "Global\\PerformanceOverlay");
+            if (requestedKernelDrivers && !Instance.UseKernelDrivers)
+            {
+                Settings.Default.EnableKernelDrivers = false;
+                Log.TraceLine("PerformanceOverlay: kernel drivers requested but unavailable in current session.");
+            }
 
             if (Instance.WantsRunOnStartup)
                 startupManager.Startup = true;
@@ -178,16 +184,24 @@ namespace PerformanceOverlay
 
         private void setKernelDrivers(bool value)
         {
-            if (value && AckAntiCheat())
+            if (value)
             {
+                if (!AckAntiCheat())
+                {
+                    Instance.UseKernelDrivers = false;
+                    Settings.Default.EnableKernelDrivers = false;
+                    return;
+                }
+
                 Instance.UseKernelDrivers = true;
-                Settings.Default.EnableKernelDrivers = true;
+                Settings.Default.EnableKernelDrivers = Instance.UseKernelDrivers;
+                if (!Instance.UseKernelDrivers)
+                    Log.TraceLine("PerformanceOverlay: failed to enable kernel drivers.");
+                return;
             }
-            else
-            {
-                Instance.UseKernelDrivers = false;
-                Settings.Default.EnableKernelDrivers = false;
-            }
+
+            Instance.UseKernelDrivers = false;
+            Settings.Default.EnableKernelDrivers = false;
         }
 
         private void SharedData_Update()

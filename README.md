@@ -4,13 +4,14 @@ This repository is a personal fork of Steam Deck Tools, customized for my ROG Al
 
 ## Scope
 
-This fork is focused on `PerformanceOverlay` only.
+This fork is focused on `PerformanceOverlay` and companion tooling around it (including a Game Bar widget).
 
 Included projects:
 
 - `PerformanceOverlay`
 - `CommonHelpers`
 - `ExternalHelpers`
+- `XboxGameBarWidget`
 
 The other original applications are intentionally not part of active development in this fork.
 
@@ -21,9 +22,48 @@ dotnet restore PerformanceOverlay/PerformanceOverlay.csproj
 dotnet build PerformanceOverlay/PerformanceOverlay.csproj --configuration Release
 ```
 
+This fork now targets `.NET 8` for desktop projects.
+
 ## CI
 
-GitHub Actions is configured to build only `PerformanceOverlay` and publish a ZIP artifact.
+GitHub Actions builds and publishes:
+
+- `PerformanceOverlay-<version>.zip`
+- `SteamDeckToolsGameBarWidget-<version>.zip` (includes MSIX package + install script)
+
+## Xbox Game Bar widget (Windows 11)
+
+The widget appears in Xbox Game Bar (`Win+G`) as **Performance Overlay Control** and lets you:
+
+- Switch directly to `FPS`, `Battery`, `FPSWithBattery`, `Minimal`, `Detail`, `Full`
+- `Quick Reset` (sets mode to `FPS`)
+- `Toggle` overlay visibility
+
+Current widget layout (3 columns):
+
+- Row 1: `FPS` | `Battery` | `FPS + Battery`
+- Row 2: `Minimal` | `Detail` | `Full`
+- Row 3 (highlighted): `Quick Reset` | `Toggle`
+
+The widget sends URI commands to `PerformanceOverlay` via:
+
+- `steamdecktools-performanceoverlay://mode/<name>`
+- `steamdecktools-performanceoverlay://toggle`
+
+Run `PerformanceOverlay` once after extracting it so it can register the URI protocol in `HKCU`.
+
+## Install widget package (PowerShell)
+
+After downloading the `SteamDeckToolsGameBarWidget-<version>.zip` artifact:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/install_gamebar_widget.ps1 -PackagePath "C:\path\to\SteamDeckToolsGameBarWidget-<version>.zip"
+```
+
+Use `-ForceReinstall` to remove an existing widget package before reinstalling.
+
+If Windows blocks unsigned package installation, enable Developer Mode:
+`Settings > Privacy & security > For developers > Developer Mode`.
 
 ## Install latest GitHub build artifact (PowerShell)
 

@@ -6,10 +6,10 @@ cd "%~dp0\.."
 :retry
 
 taskkill /F /IM "%2.exe"
-del %2\bin\Debug\net6.0-windows\%2.exe
+del %2\bin\Debug\net8.0-windows\%2.exe
 
 dotnet build %2\%2.csproj
-%2\bin\Debug\net6.0-windows\%2.exe
+%2\bin\Debug\net8.0-windows\%2.exe
 
 timeout /t 3
 goto retry

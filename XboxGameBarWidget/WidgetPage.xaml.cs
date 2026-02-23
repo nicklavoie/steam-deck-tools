@@ -1,0 +1,48 @@
+using System;
+using Windows.System;
+using Windows.UI.Xaml;
+using Windows.UI.Xaml.Controls;
+
+namespace SteamDeckToolsGameBarWidget
+{
+    public sealed partial class WidgetPage : Page
+    {
+        public WidgetPage()
+        {
+            InitializeComponent();
+        }
+
+        private async void CommandButton_Click(object sender, RoutedEventArgs e)
+        {
+            var button = sender as Button;
+            if (button == null || !(button.Tag is string))
+                return;
+
+            try
+            {
+                var targetUri = (string)button.Tag;
+                Uri uri;
+                if (!Uri.TryCreate(targetUri, UriKind.Absolute, out uri))
+                {
+                    StatusText.Text = "Invalid command URI.";
+                    return;
+                }
+
+                var app = Application.Current as App;
+                bool launched = false;
+                if (app?.ActiveWidget != null)
+                    launched = await app.ActiveWidget.LaunchUriAsync(uri);
+                else
+                    launched = await Launcher.LaunchUriAsync(uri);
+
+                StatusText.Text = launched
+                    ? "Sent command: " + button.Content
+                    : "Unable to launch command URI. Run PerformanceOverlay once to register protocol, and avoid forcing elevated startup.";
+            }
+            catch (Exception ex)
+            {
+                StatusText.Text = "Failed to send command: 0x" + ex.HResult.ToString("X8") + " " + ex.Message;
+            }
+        }
+    }
+}
