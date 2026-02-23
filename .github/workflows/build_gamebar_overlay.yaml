@@ -77,12 +77,42 @@ jobs:
           "WIDGET_CERT_PATH=$cerPath" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           "WIDGET_CERT_THUMBPRINT=$($cert.Thumbprint)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
+      - name: Resolve available UAP target framework
+        shell: pwsh
+        run: |
+          $uapRoot = Join-Path ${env:ProgramFiles(x86)} "Reference Assemblies\Microsoft\Framework\UAP"
+          if (-not (Test-Path -LiteralPath $uapRoot)) {
+            throw "UAP reference assemblies root not found at '$uapRoot'."
+          }
+
+          $uapDirs = Get-ChildItem -Path $uapRoot -Directory |
+            Where-Object { $_.Name -match '^v\d+\.\d+(\.\d+){0,2}$' }
+
+          if (-not $uapDirs) {
+            throw "No UAP version directories found under '$uapRoot'."
+          }
+
+          $best = $uapDirs |
+            Sort-Object { [Version]($_.Name.TrimStart('v')) } -Descending |
+            Select-Object -First 1
+
+          $bestVersion = [Version]($best.Name.TrimStart('v'))
+          $versionParts = @($bestVersion.Major, $bestVersion.Minor)
+          if ($bestVersion.Build -ge 0) { $versionParts += $bestVersion.Build }
+          if ($bestVersion.Revision -gt 0) { $versionParts += $bestVersion.Revision }
+          $uapVersion = ($versionParts -join '.')
+          $uapTfm = "uap$uapVersion"
+
+          Write-Host "Using UAP target framework: $uapTfm (from '$($best.Name)')"
+          "WIDGET_TARGET_FRAMEWORK=$uapTfm" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
       - name: Build Game Bar widget appx bundle
         shell: pwsh
         run: |
           $pfxPath = "${{ env.WIDGET_PFX_PATH }}"
           $pfxPassword = "${{ env.WIDGET_PFX_PASSWORD }}"
-          msbuild NickGameBar.GameBarWidget/NickGameBar.GameBarWidget.csproj /restore /p:Configuration=Release /p:Platform=x64 /p:GenerateAppxPackageOnBuild=true /p:UapAppxPackageBuildMode=SideloadOnly /p:AppxBundle=Always /p:AppxBundlePlatforms=x64 /p:AppxPackageSigningEnabled=true /p:PackageCertificateKeyFile="$pfxPath" /p:PackageCertificatePassword="$pfxPassword" /p:PackageCertificateThumbprint=
+          $uapTfm = "${{ env.WIDGET_TARGET_FRAMEWORK }}"
+          msbuild NickGameBar.GameBarWidget/NickGameBar.GameBarWidget.csproj /restore /p:Configuration=Release /p:Platform=x64 /p:TargetFramework="$uapTfm" /p:GenerateAppxPackageOnBuild=true /p:UapAppxPackageBuildMode=SideloadOnly /p:AppxBundle=Always /p:AppxBundlePlatforms=x64 /p:AppxPackageSigningEnabled=true /p:PackageCertificateKeyFile="$pfxPath" /p:PackageCertificatePassword="$pfxPassword" /p:PackageCertificateThumbprint=
 
       - name: Collect release payload
         shell: pwsh
