@@ -39,13 +39,7 @@ namespace PerformanceOverlay
             contextMenu = new System.Windows.Forms.ContextMenuStrip(components);
 
             SharedData_Update();
-            var requestedKernelDrivers = Settings.Default.EnableKernelDrivers;
-            Instance.Open(TitleWithVersion, requestedKernelDrivers, "Global\\PerformanceOverlay");
-            if (requestedKernelDrivers && !Instance.UseKernelDrivers)
-            {
-                Settings.Default.EnableKernelDrivers = false;
-                Log.TraceLine("PerformanceOverlay: kernel drivers requested but unavailable in current session.");
-            }
+            Instance.Open(TitleWithVersion, Settings.Default.EnableKernelDrivers, "Global\\PerformanceOverlay");
 
             if (Instance.WantsRunOnStartup)
                 startupManager.Startup = true;
@@ -184,33 +178,16 @@ namespace PerformanceOverlay
 
         private void setKernelDrivers(bool value)
         {
-            if (value)
+            if (value && AckAntiCheat())
             {
-                if (!AckAntiCheat())
-                {
-                    Instance.UseKernelDrivers = false;
-                    Settings.Default.EnableKernelDrivers = false;
-                    return;
-                }
-
                 Instance.UseKernelDrivers = true;
-                Settings.Default.EnableKernelDrivers = Instance.UseKernelDrivers;
-
-                if (!Instance.UseKernelDrivers)
-                {
-                    System.Windows.Forms.MessageBox.Show(
-                        "Failed to enable kernel drivers. Run Performance Overlay as administrator and try again.",
-                        TitleWithVersion,
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Warning
-                    );
-                }
-
-                return;
+                Settings.Default.EnableKernelDrivers = true;
             }
-
-            Instance.UseKernelDrivers = false;
-            Settings.Default.EnableKernelDrivers = false;
+            else
+            {
+                Instance.UseKernelDrivers = false;
+                Settings.Default.EnableKernelDrivers = false;
+            }
         }
 
         private void SharedData_Update()

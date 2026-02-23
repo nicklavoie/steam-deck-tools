@@ -31,7 +31,7 @@ namespace SteamDeckToolsGameBarWidget
                 bool launched = await Launcher.LaunchUriAsync(uri);
                 StatusText.Text = launched
                     ? "Sent command: " + button.Content
-                    : "Unable to launch command URI. Start PerformanceOverlay once and ensure it is not forced to run elevated.";
+                    : "Unable to launch command URI. Start PerformanceOverlay first.";
             }
             catch (Exception ex)
             {
