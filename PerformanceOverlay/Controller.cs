@@ -2,6 +2,7 @@
 using ExternalHelpers;
 using RTSSSharedMemoryNET;
 using System.ComponentModel;
+using System.Globalization;
 
 namespace PerformanceOverlay
 {
@@ -23,6 +24,8 @@ namespace PerformanceOverlay
         );
 
         SharedData<OverlayModeSetting> sharedData = SharedData<OverlayModeSetting>.CreateNew();
+        SharedData<OverlayTelemetrySnapshot> telemetryData = SharedData<OverlayTelemetrySnapshot>.CreateNew();
+        uint telemetrySequence = 0;
 
         static Controller()
         {
@@ -236,6 +239,49 @@ namespace PerformanceOverlay
             });
         }
 
+        private void TelemetryData_Update()
+        {
+            var telemetry = telemetryData.NewValue();
+
+            telemetry.CPU_Percent = ParseSensorValue(sensors.GetValue("CPU_%"));
+            telemetry.CPU_Watts = ParseSensorValue(sensors.GetValue("CPU_W"));
+            telemetry.CPU_Temperature = ParseSensorValue(sensors.GetValue("CPU_T"));
+            telemetry.CPU_MHz = ParseSensorValue(sensors.GetValue("CPU_MHZ"));
+
+            telemetry.MEM_GB = ParseSensorValue(sensors.GetValue("MEM_GB"));
+            telemetry.MEM_MB = ParseSensorValue(sensors.GetValue("MEM_MB"));
+
+            telemetry.GPU_Percent = ParseSensorValue(sensors.GetValue("GPU_%"));
+            telemetry.GPU_MB = ParseSensorValue(sensors.GetValue("GPU_MB"));
+            telemetry.GPU_GB = ParseSensorValue(sensors.GetValue("GPU_GB"));
+            telemetry.GPU_Watts = ParseSensorValue(sensors.GetValue("GPU_W"));
+            telemetry.GPU_MHz = ParseSensorValue(sensors.GetValue("GPU_MHZ"));
+            telemetry.GPU_Temperature = ParseSensorValue(sensors.GetValue("GPU_T"));
+
+            telemetry.BATT_Percent = ParseSensorValue(sensors.GetValue("BATT_%"));
+            telemetry.BATT_Minutes = ParseSensorValue(sensors.GetValue("BATT_MIN"));
+            telemetry.BATT_DischargeWatts = ParseSensorValue(sensors.GetValue("BATT_W"));
+            telemetry.BATT_ChargeWatts = ParseSensorValue(sensors.GetValue("BATT_CHARGE_W"));
+
+            telemetry.FAN_RPM = ParseSensorValue(sensors.GetValue("FAN_RPM"));
+
+            telemetry.Sequence = ++telemetrySequence;
+            telemetry.TimestampUnixSeconds = (uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+
+            telemetryData.SetValue(telemetry);
+        }
+
+        private static float ParseSensorValue(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return float.NaN;
+
+            if (float.TryParse(value, NumberStyles.Float, CultureInfo.GetCultureInfo("en-US"), out float parsedValue))
+                return parsedValue;
+
+            return float.NaN;
+        }
+
         private void OsdTimer_Tick(object? sender, EventArgs e)
         {
             try
@@ -264,6 +310,8 @@ namespace PerformanceOverlay
             if (!Settings.Default.ShowOSD)
             {
                 osdTimer.Interval = 1000;
+                sensors.Update();
+                TelemetryData_Update();
                 osdReset();
                 return;
             }
@@ -271,6 +319,7 @@ namespace PerformanceOverlay
             osdTimer.Interval = 250;
 
             sensors.Update();
+            TelemetryData_Update();
 
             var osdMode = Settings.Default.OSDMode;
 
@@ -339,6 +388,7 @@ namespace PerformanceOverlay
         public void Dispose()
         {
             components.Dispose();
+            telemetryData.Dispose();
             osdClose();
             using (sensors) { }
         }
