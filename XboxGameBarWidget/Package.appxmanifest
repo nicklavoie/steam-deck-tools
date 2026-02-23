@@ -8,7 +8,7 @@
 
   <Identity
     Name="SteamDeckToolsGameBarWidget"
-    Publisher="CN=SteamDeckTools"
+    Publisher="CN=SteamDeckTools, OID.2.25.311729368913984317654407730594956997722=1"
     Version="1.0.0.0" />
 
   <mp:PhoneIdentity PhoneProductId="5b2bd271-f8d5-43d8-8fe8-56c4f57c44ee" PhonePublisherId="00000000-0000-0000-0000-000000000000" />

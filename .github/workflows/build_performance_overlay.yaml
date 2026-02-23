@@ -3,6 +3,8 @@ name: build-performance-overlay
 on:
   workflow_dispatch:
   push:
+    branches:
+      - main
     paths:
       - ".github/workflows/build_performance_overlay.yaml"
       - "PerformanceOverlay/**"
@@ -90,16 +92,17 @@ jobs:
         shell: pwsh
         run: |
           $manifestPath = "XboxGameBarWidget/Package.appxmanifest"
-          $manifestContent = Get-Content $manifestPath -Raw
-          $manifestContent = [regex]::Replace(
-            $manifestContent,
-            '(<Identity\s+Name="SteamDeckToolsGameBarWidget"\s+Publisher="CN=SteamDeckTools"\s+Version=")[^"]+(")',
-            {
-              param($match)
-              $match.Groups[1].Value + "${{ env.WIDGET_PACKAGE_VERSION }}" + $match.Groups[2].Value
-            }
-          )
-          Set-Content -Path $manifestPath -Value $manifestContent -Encoding UTF8
+          [xml]$manifestXml = Get-Content -Path $manifestPath
+          $manifestNs = New-Object System.Xml.XmlNamespaceManager($manifestXml.NameTable)
+          $manifestNs.AddNamespace("appx", "http://schemas.microsoft.com/appx/manifest/foundation/windows10")
+          $identityNode = $manifestXml.SelectSingleNode("/appx:Package/appx:Identity", $manifestNs)
+          if (-not $identityNode) {
+            throw "Could not locate Identity node in '$manifestPath'."
+          }
+
+          $identityNode.SetAttribute("Publisher", "CN=SteamDeckTools, OID.2.25.311729368913984317654407730594956997722=1")
+          $identityNode.SetAttribute("Version", "${{ env.WIDGET_PACKAGE_VERSION }}")
+          $manifestXml.Save($manifestPath)
 
           $widgetPackageDir = Join-Path $PWD "${{ env.WIDGET_NAME }}-${{ env.RELEASE_VERSION }}"
           New-Item -ItemType Directory -Path $widgetPackageDir -Force | Out-Null
