@@ -7,7 +7,7 @@ This repo now includes two **new** projects for an Xbox Game Bar overlay path wi
 
 ## Architecture
 
-1. `NickGameBar.TelemetryHost` reuses Steam Deck Tools telemetry collectors (`PerformanceOverlay.Sensors` + `CommonHelpers.Instance`) on the desktop process side.
+1. `NickGameBar.TelemetryHost` reuses Steam Deck Tools telemetry collectors (source-linked `PerformanceOverlay/Sensors.cs` + `CommonHelpers.Instance`) on the desktop process side.
 2. Every 500ms, the host writes one JSON snapshot line to a named pipe server: `NickGameBar.Telemetry.v1`.
 3. `NickGameBar.GameBarWidget` connects as a named pipe client and renders compact / expanded UI in Game Bar.
 4. If pipe connection fails, widget shows a clear **"Service not running"** state.

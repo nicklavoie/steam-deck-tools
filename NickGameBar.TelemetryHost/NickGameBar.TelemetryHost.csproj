@@ -10,6 +10,9 @@
   <ItemGroup>
     <ProjectReference Include="..\CommonHelpers\CommonHelpers.csproj" />
     <ProjectReference Include="..\ExternalHelpers\ExternalHelpers.csproj" />
-    <ProjectReference Include="..\PerformanceOverlay\PerformanceOverlay.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\PerformanceOverlay\Sensors.cs" Link="Telemetry\Sensors.cs" />
   </ItemGroup>
 </Project>
