@@ -1,0 +1,77 @@
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/build_gamebar_overlay.yaml"
+      - "NickGameBar.TelemetryHost/**"
+      - "NickGameBar.GameBarWidget/**"
+      - "PerformanceOverlay/**"
+      - "CommonHelpers/**"
+      - "ExternalHelpers/**"
+      - "VERSION"
+  pull_request:
+    paths:
+      - ".github/workflows/build_gamebar_overlay.yaml"
+      - "NickGameBar.TelemetryHost/**"
+      - "NickGameBar.GameBarWidget/**"
+      - "PerformanceOverlay/**"
+      - "CommonHelpers/**"
+      - "ExternalHelpers/**"
+      - "VERSION"
+
+env:
+  DOTNET_VERSION: "8.0.x"
+  APP_NAME: NickGameBar
+
+jobs:
+  build-gamebar:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Set RELEASE_VERSION
+        shell: pwsh
+        run: |
+          $majorVersion = (Get-Content VERSION -Raw).Trim()
+          $releaseVersion = "$majorVersion.${{ github.run_number }}"
+          "RELEASE_VERSION=$releaseVersion" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Restore TelemetryHost dependencies
+        run: dotnet restore NickGameBar.TelemetryHost/NickGameBar.TelemetryHost.csproj
+
+      - name: Build TelemetryHost
+        run: dotnet publish NickGameBar.TelemetryHost/NickGameBar.TelemetryHost.csproj --configuration Release --runtime win-x64 --self-contained false --output "out/TelemetryHost" "/property:Version=${{ env.RELEASE_VERSION }}"
+
+      - name: Build Game Bar widget appx bundle
+        shell: pwsh
+        run: |
+          msbuild NickGameBar.GameBarWidget/NickGameBar.GameBarWidget.csproj /restore /p:Configuration=Release /p:Platform=x64 /p:GenerateAppxPackageOnBuild=true /p:UapAppxPackageBuildMode=SideloadOnly /p:AppxBundle=Always /p:AppxBundlePlatforms=x64 /p:AppxPackageSigningEnabled=false
+
+      - name: Collect release payload
+        shell: pwsh
+        run: |
+          $root = "release/${{ env.APP_NAME }}-${{ env.RELEASE_VERSION }}"
+          New-Item -ItemType Directory -Force -Path "$root/Program Files/Nick Lavoie/PerformanceOverlay/NickGameBar.TelemetryHost" | Out-Null
+          New-Item -ItemType Directory -Force -Path "$root/AppPackages/NickGameBar.GameBarWidget" | Out-Null
+
+          Copy-Item -Path "out/TelemetryHost/*" -Destination "$root/Program Files/Nick Lavoie/PerformanceOverlay/NickGameBar.TelemetryHost" -Recurse -Force
+
+          $pkgDir = Get-ChildItem "NickGameBar.GameBarWidget/AppPackages" -Directory -ErrorAction Stop | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+          Copy-Item -Path "$($pkgDir.FullName)/*" -Destination "$root/AppPackages/NickGameBar.GameBarWidget" -Recurse -Force
+
+      - name: Create zip artifact
+        shell: pwsh
+        run: |
+          Compress-Archive -Path "release/${{ env.APP_NAME }}-${{ env.RELEASE_VERSION }}/*" -DestinationPath "${{ env.APP_NAME }}-${{ env.RELEASE_VERSION }}.zip"
+
+      - name: Upload Game Bar zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APP_NAME }}-${{ env.RELEASE_VERSION }}.zip
+          path: ${{ env.APP_NAME }}-${{ env.RELEASE_VERSION }}.zip
+          retention-days: 14

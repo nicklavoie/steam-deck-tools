@@ -43,3 +43,12 @@ This repo now includes two **new** projects for an Xbox Game Bar overlay path wi
 - No Armoury Crate integration.
 - No moving hardware telemetry collection into widget sandbox.
 - Widget is display-only; host remains telemetry source of truth.
+
+## GitHub workflow artifact
+
+The `build_gamebar_overlay.yaml` workflow outputs a zip payload containing:
+
+- `Program Files/Nick Lavoie/PerformanceOverlay/NickGameBar.TelemetryHost`
+- `AppPackages/NickGameBar.GameBarWidget` (for sideloading)
+
+So telemetry host install location stays under the same base path as Performance Overlay (`C:\Program Files\Nick Lavoie\PerformanceOverlay`).

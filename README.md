@@ -115,3 +115,19 @@ Steam Deck Tools is not affiliated with Valve, Steam, or any of their partners.
 [Creative Commons Attribution-NonCommercial-ShareAlike (CC-BY-NC-SA)](http://creativecommons.org/licenses/by-nc-sa/4.0/).
 
 Free for personal use. Contact me in other cases (`ayufan@ayufan.eu`).
+
+## Game Bar build artifact
+
+A dedicated workflow (`.github/workflows/build_gamebar_overlay.yaml`) now builds:
+- `NickGameBar.TelemetryHost` (desktop host)
+- `NickGameBar.GameBarWidget` app package output for sideload
+
+The artifact zip contains:
+- `Program Files/Nick Lavoie/PerformanceOverlay/NickGameBar.TelemetryHost`
+- `AppPackages/NickGameBar.GameBarWidget`
+
+To install the latest telemetry host from that artifact to the same root used by PerformanceOverlay:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/install_gamebar_from_github_build.ps1 -DestinationRoot "C:\Program Files\Nick Lavoie\PerformanceOverlay"
+```
