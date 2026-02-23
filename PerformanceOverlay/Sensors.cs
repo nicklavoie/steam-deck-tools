@@ -12,7 +12,7 @@ using CommonHelpers;
 
 namespace PerformanceOverlay
 {
-    internal class Sensors : IDisposable
+    public class Sensors : IDisposable
     {
         public abstract class Sensor
         {

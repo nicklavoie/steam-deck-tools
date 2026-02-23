@@ -1,0 +1,61 @@
+<Page
+    x:Class="NickGameBar.GameBarWidget.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="#CC111111">
+
+    <Grid Padding="12">
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup>
+                <VisualState x:Name="CompactState">
+                    <VisualState.Setters>
+                        <Setter Target="ExpandedPanel.Visibility" Value="Collapsed" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="ExpandedState">
+                    <VisualState.Setters>
+                        <Setter Target="ExpandedPanel.Visibility" Value="Visible" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+
+        <StackPanel Spacing="8">
+            <TextBlock Text="Steam Deck Telemetry" FontSize="20" Foreground="White" />
+            <Border Background="#55222222" CornerRadius="8" Padding="8">
+                <TextBlock x:Name="ServiceStateText" Text="Connecting…" Foreground="#FF99D699" FontSize="14"/>
+            </Border>
+
+            <Grid ColumnSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="CPU" Foreground="#FFAAAAAA" />
+                    <TextBlock x:Name="CpuText" Foreground="White" FontSize="18" />
+                    <TextBlock Text="GPU" Foreground="#FFAAAAAA" />
+                    <TextBlock x:Name="GpuText" Foreground="White" FontSize="18" />
+                </StackPanel>
+                <StackPanel Grid.Column="1">
+                    <TextBlock Text="RAM" Foreground="#FFAAAAAA" />
+                    <TextBlock x:Name="RamText" Foreground="White" FontSize="18" />
+                    <TextBlock Text="FPS" Foreground="#FFAAAAAA" />
+                    <TextBlock x:Name="FpsText" Foreground="White" FontSize="18" />
+                </StackPanel>
+            </Grid>
+
+            <StackPanel x:Name="ExpandedPanel" Spacing="4" Visibility="Collapsed">
+                <TextBlock x:Name="VramText" Foreground="White"/>
+                <TextBlock x:Name="CpuTempText" Foreground="White"/>
+                <TextBlock x:Name="GpuTempText" Foreground="White"/>
+                <TextBlock x:Name="BatteryText" Foreground="White"/>
+                <TextBlock x:Name="FanText" Foreground="White"/>
+                <TextBlock x:Name="UpdatedText" Foreground="#FFAAAAAA"/>
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</Page>
