@@ -101,7 +101,7 @@ namespace ExternalHelpers
                 {
                     if (IsAvailable)
                     {
-                        if (IsTaskServiceConnect)
+                        if (IsAdministrator() && IsTaskServiceConnect)
                         {
                             if (value)
                                 CreateTask();
