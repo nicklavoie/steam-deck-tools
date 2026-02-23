@@ -16,7 +16,7 @@ if (-not (Test-Path -LiteralPath $PackagePath)) {
 $tempExtractDir = $null
 $dependencyPackages = @()
 
-function Get-PackagePublisher {
+function Get-PackageIdentityInfo {
     param(
         [Parameter(Mandatory = $true)]
         [string]$Path
@@ -34,7 +34,18 @@ function Get-PackagePublisher {
         $reader = New-Object System.IO.StreamReader($stream)
         try {
             [xml]$manifestXml = $reader.ReadToEnd()
-            return $manifestXml.Package.Identity.Publisher
+            $identityNode = $manifestXml.SelectSingleNode("/*[local-name()='Package']/*[local-name()='Identity']")
+            if (-not $identityNode) {
+                return @{
+                    Publisher = $null
+                    Architecture = $null
+                }
+            }
+
+            return @{
+                Publisher = $identityNode.GetAttribute("Publisher")
+                Architecture = $identityNode.GetAttribute("ProcessorArchitecture")
+            }
         }
         finally {
             $reader.Dispose()
@@ -43,6 +54,29 @@ function Get-PackagePublisher {
     }
     finally {
         $zip.Dispose()
+    }
+}
+
+function Resolve-EffectiveArchitecture {
+    param(
+        [string]$PackageArchitecture,
+        [string]$PackageFileName
+    )
+
+    if ($PackageArchitecture -and $PackageArchitecture -ne "neutral") {
+        return $PackageArchitecture.ToLowerInvariant()
+    }
+
+    if ($PackageFileName -match "_(x86|x64|arm|arm64)_") {
+        return $Matches[1].ToLowerInvariant()
+    }
+
+    switch ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture) {
+        "X64" { return "x64" }
+        "X86" { return "x86" }
+        "Arm64" { return "arm64" }
+        "Arm" { return "arm" }
+        default { return "x64" }
     }
 }
 
@@ -70,18 +104,36 @@ try {
                 Select-Object -First 1
         }
 
+        $packageInfo = Get-PackageIdentityInfo -Path $packageItem.FullName
+        $effectiveArchitecture = Resolve-EffectiveArchitecture -PackageArchitecture $packageInfo.Architecture -PackageFileName $packageItem.Name
+
         $dependencyPackages = $allPackages |
             Where-Object { $_.FullName -match "[\\/]+Dependencies[\\/]+" -and $_.Extension -in ".msix", ".appx" } |
+            Where-Object {
+                $_.FullName -match "(?i)[\\/]+Dependencies[\\/]+$([regex]::Escape($effectiveArchitecture))[\\/]+" -or
+                $_.FullName -match "(?i)[\\/]+Dependencies[\\/]+neutral[\\/]+"
+            } |
             Sort-Object FullName |
             Select-Object -ExpandProperty FullName
+
+        Write-Host "Resolved package architecture: $effectiveArchitecture"
     }
     else {
         $dependenciesFolder = Join-Path $packageItem.Directory.FullName "Dependencies"
         if (Test-Path -LiteralPath $dependenciesFolder) {
+            $packageInfo = Get-PackageIdentityInfo -Path $packageItem.FullName
+            $effectiveArchitecture = Resolve-EffectiveArchitecture -PackageArchitecture $packageInfo.Architecture -PackageFileName $packageItem.Name
+
             $dependencyPackages = Get-ChildItem -LiteralPath $dependenciesFolder -Recurse -File |
                 Where-Object { $_.Extension -in ".msix", ".appx" } |
+                Where-Object {
+                    $_.FullName -match "(?i)[\\/]+Dependencies[\\/]+$([regex]::Escape($effectiveArchitecture))[\\/]+" -or
+                    $_.FullName -match "(?i)[\\/]+Dependencies[\\/]+neutral[\\/]+"
+                } |
                 Sort-Object FullName |
                 Select-Object -ExpandProperty FullName
+
+            Write-Host "Resolved package architecture: $effectiveArchitecture"
         }
     }
 
@@ -96,7 +148,7 @@ try {
         Remove-AppxPackage -Package $installedPackage.PackageFullName
     }
 
-    $publisher = Get-PackagePublisher -Path $packageItem.FullName
+    $publisher = (Get-PackageIdentityInfo -Path $packageItem.FullName).Publisher
     if ($publisher -and -not $publisher.Contains($unsignedPublisherMarker)) {
         throw "Selected package '$($packageItem.Name)' has publisher '$publisher', which is not in the unsigned namespace. Make sure you picked the SteamDeckToolsGameBarWidget package file."
     }
