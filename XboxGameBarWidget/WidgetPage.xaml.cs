@@ -28,6 +28,13 @@ namespace SteamDeckToolsGameBarWidget
                     return;
                 }
 
+                var supportStatus = await Launcher.QueryUriSupportAsync(uri, LaunchQuerySupportType.Uri);
+                if (supportStatus != LaunchQuerySupportStatus.Available)
+                {
+                    StatusText.Text = "Command URI unavailable: " + supportStatus;
+                    return;
+                }
+
                 bool launched = await Launcher.LaunchUriAsync(uri);
                 StatusText.Text = launched
                     ? "Sent command: " + button.Content
@@ -35,7 +42,7 @@ namespace SteamDeckToolsGameBarWidget
             }
             catch (Exception ex)
             {
-                StatusText.Text = "Failed to send command: " + ex.Message;
+                StatusText.Text = "Failed to send command: 0x" + ex.HResult.ToString("X8") + " " + ex.Message;
             }
         }
     }

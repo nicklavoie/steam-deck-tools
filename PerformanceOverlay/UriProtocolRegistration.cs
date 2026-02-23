@@ -1,5 +1,8 @@
 using CommonHelpers;
 using Microsoft.Win32;
+using System.Diagnostics;
+using System.Security.Principal;
+using System.Windows.Forms;
 
 namespace PerformanceOverlay
 {
@@ -13,11 +16,36 @@ namespace PerformanceOverlay
             {
                 var exePath = Environment.ProcessPath;
                 if (String.IsNullOrWhiteSpace(exePath))
+                    exePath = Application.ExecutablePath;
+                if (String.IsNullOrWhiteSpace(exePath))
+                    exePath = Process.GetCurrentProcess().MainModule?.FileName;
+                if (String.IsNullOrWhiteSpace(exePath))
+                {
+                    Log.TraceLine("UriProtocolRegistration: executable path could not be resolved.");
                     return;
+                }
 
-                using var protocol = Registry.CurrentUser.CreateSubKey(ProtocolKey);
+                EnsureRegisteredForRoot(Registry.CurrentUser, exePath, "HKCU");
+
+                if (IsElevated())
+                    EnsureRegisteredForRoot(Registry.LocalMachine, exePath, "HKLM");
+            }
+            catch (Exception ex)
+            {
+                Log.TraceException("UriProtocolRegistration", ex);
+            }
+        }
+
+        private static void EnsureRegisteredForRoot(RegistryKey root, string exePath, string rootName)
+        {
+            try
+            {
+                using var protocol = root.CreateSubKey(ProtocolKey);
                 if (protocol is null)
+                {
+                    Log.TraceLine("UriProtocolRegistration: failed to open protocol key in {0}.", rootName);
                     return;
+                }
 
                 protocol.SetValue("", "URL:Steam Deck Tools Performance Overlay");
                 protocol.SetValue("URL Protocol", "");
@@ -27,10 +55,27 @@ namespace PerformanceOverlay
 
                 using var command = protocol.CreateSubKey(@"shell\open\command");
                 command?.SetValue("", "\"" + exePath + "\" \"%1\"");
+
+                var registered = command?.GetValue("")?.ToString();
+                Log.TraceLine("UriProtocolRegistration: {0} registered command: {1}", rootName, registered ?? "<null>");
             }
-            catch (Exception ex)
+            catch (UnauthorizedAccessException ex)
             {
-                Log.TraceLine("UriProtocolRegistration: {0}", ex.Message);
+                Log.TraceLine("UriProtocolRegistration: {0} access denied: {1}", rootName, ex.Message);
+            }
+        }
+
+        private static bool IsElevated()
+        {
+            try
+            {
+                var identity = WindowsIdentity.GetCurrent();
+                var principal = new WindowsPrincipal(identity);
+                return principal.IsInRole(WindowsBuiltInRole.Administrator);
+            }
+            catch
+            {
+                return false;
             }
         }
     }
