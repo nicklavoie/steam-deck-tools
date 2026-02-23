@@ -1,0 +1,68 @@
+<Page
+    x:Class="SteamDeckToolsGameBarWidget.WidgetPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:SteamDeckToolsGameBarWidget"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid Background="#15181F">
+        <StackPanel Margin="12">
+            <TextBlock
+                Margin="0,0,0,8"
+                FontSize="16"
+                FontWeight="SemiBold"
+                Foreground="White"
+                Text="Performance Overlay" />
+
+            <Grid Margin="0,0,0,8">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Row="0" Grid.Column="0" Margin="2" Click="CommandButton_Click" Tag="steamdecktools-performanceoverlay://mode/fps">FPS</Button>
+                <Button Grid.Row="0" Grid.Column="1" Margin="2" Click="CommandButton_Click" Tag="steamdecktools-performanceoverlay://mode/fpswithbattery">FPS + Battery</Button>
+                <Button Grid.Row="0" Grid.Column="2" Margin="2" Click="CommandButton_Click" Tag="steamdecktools-performanceoverlay://mode/battery">Battery</Button>
+
+                <Button Grid.Row="1" Grid.Column="0" Margin="2" Click="CommandButton_Click" Tag="steamdecktools-performanceoverlay://mode/minimal">Minimal</Button>
+                <Button Grid.Row="1" Grid.Column="1" Margin="2" Click="CommandButton_Click" Tag="steamdecktools-performanceoverlay://mode/detail">Detail</Button>
+                <Button Grid.Row="1" Grid.Column="2" Margin="2" Click="CommandButton_Click" Tag="steamdecktools-performanceoverlay://mode/full">Full</Button>
+            </Grid>
+
+            <Grid Margin="0,0,0,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Column="0" Margin="2" Click="CommandButton_Click" Tag="steamdecktools-performanceoverlay://show">Show</Button>
+                <Button Grid.Column="1" Margin="2" Click="CommandButton_Click" Tag="steamdecktools-performanceoverlay://hide">Hide</Button>
+                <Button Grid.Column="2" Margin="2" Click="CommandButton_Click" Tag="steamdecktools-performanceoverlay://toggle">Toggle</Button>
+            </Grid>
+
+            <Grid Margin="0,0,0,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Column="0" Margin="2" Click="CommandButton_Click" Tag="steamdecktools-performanceoverlay://cycle">Cycle</Button>
+                <Button Grid.Column="1" Margin="2" Click="CommandButton_Click" Tag="steamdecktools-performanceoverlay://mode/fps">Quick Reset</Button>
+            </Grid>
+
+            <TextBlock
+                x:Name="StatusText"
+                Foreground="#B7C7D6"
+                Text="Requires PerformanceOverlay running at least once to register the URI protocol."
+                TextWrapping="Wrap" />
+        </StackPanel>
+    </Grid>
+</Page>
