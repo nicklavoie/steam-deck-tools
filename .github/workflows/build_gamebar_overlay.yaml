@@ -51,6 +51,50 @@ jobs:
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
 
+      - name: Ensure UAP reference assemblies are installed
+        shell: pwsh
+        run: |
+          $uapRoot = Join-Path ${env:ProgramFiles(x86)} "Reference Assemblies\Microsoft\Framework\UAP"
+          if (Test-Path -LiteralPath $uapRoot) {
+            Write-Host "UAP reference assemblies already available at '$uapRoot'."
+            exit 0
+          }
+
+          $installerDir = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer"
+          $vswhere = Join-Path $installerDir "vswhere.exe"
+          $setup = Join-Path $installerDir "setup.exe"
+
+          if (-not (Test-Path -LiteralPath $vswhere)) {
+            throw "vswhere.exe not found at '$vswhere'."
+          }
+          if (-not (Test-Path -LiteralPath $setup)) {
+            throw "Visual Studio setup.exe not found at '$setup'."
+          }
+
+          $installPath = & $vswhere -latest -products * -property installationPath
+          if (-not $installPath) {
+            throw "No Visual Studio installation found to modify."
+          }
+
+          Write-Host "Installing UWP build components into: $installPath"
+          & $setup modify --installPath "$installPath" --add Microsoft.VisualStudio.Workload.UniversalBuildTools --add Microsoft.VisualStudio.ComponentGroup.UWP.BuildTools --includeRecommended --quiet --norestart
+          if ($LASTEXITCODE -ne 0) {
+            throw "Visual Studio setup modify failed with exit code $LASTEXITCODE."
+          }
+
+          $deadline = (Get-Date).AddMinutes(10)
+          while ((Get-Date) -lt $deadline) {
+            if (Test-Path -LiteralPath $uapRoot) {
+              Write-Host "UAP reference assemblies installed at '$uapRoot'."
+              break
+            }
+            Start-Sleep -Seconds 10
+          }
+
+          if (-not (Test-Path -LiteralPath $uapRoot)) {
+            throw "UAP reference assemblies root not found after installation attempt: '$uapRoot'."
+          }
+
       - name: Create widget signing certificate
         shell: pwsh
         run: |
