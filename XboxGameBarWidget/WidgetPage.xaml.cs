@@ -28,12 +28,7 @@ namespace SteamDeckToolsGameBarWidget
                     return;
                 }
 
-                var app = Application.Current as App;
-                bool launched = false;
-                if (app?.ActiveWidget != null)
-                    launched = await app.ActiveWidget.LaunchUriAsync(uri);
-                else
-                    launched = await Launcher.LaunchUriAsync(uri);
+                bool launched = await Launcher.LaunchUriAsync(uri);
 
                 StatusText.Text = launched
                     ? "Sent command: " + button.Content
