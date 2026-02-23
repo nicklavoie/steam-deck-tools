@@ -47,6 +47,9 @@ jobs:
       - name: Build TelemetryHost
         run: dotnet publish NickGameBar.TelemetryHost/NickGameBar.TelemetryHost.csproj --configuration Release --runtime win-x64 --self-contained false --output "out/TelemetryHost" "/property:Version=${{ env.RELEASE_VERSION }}"
 
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
       - name: Build Game Bar widget appx bundle
         shell: pwsh
         run: |
