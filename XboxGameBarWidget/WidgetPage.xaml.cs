@@ -28,14 +28,13 @@ namespace SteamDeckToolsGameBarWidget
                     return;
                 }
 
-                var supportStatus = await Launcher.QueryUriSupportAsync(uri, LaunchQuerySupportType.Uri);
-                if (supportStatus != LaunchQuerySupportStatus.Available)
-                {
-                    StatusText.Text = "Command URI unavailable: " + supportStatus;
-                    return;
-                }
+                var app = Application.Current as App;
+                bool launched = false;
+                if (app?.ActiveWidget != null)
+                    launched = await app.ActiveWidget.LaunchUriAsync(uri);
+                else
+                    launched = await Launcher.LaunchUriAsync(uri);
 
-                bool launched = await Launcher.LaunchUriAsync(uri);
                 StatusText.Text = launched
                     ? "Sent command: " + button.Content
                     : "Unable to launch command URI. Run PerformanceOverlay once to register protocol, and avoid forcing elevated startup.";
