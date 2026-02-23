@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>uap10.0.19041</TargetFramework>
+    <TargetFramework>uap10.0.22621</TargetFramework>
     <TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
     <OutputType>WinExe</OutputType>
     <RootNamespace>NickGameBar.GameBarWidget</RootNamespace>
