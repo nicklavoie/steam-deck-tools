@@ -35,15 +35,19 @@ GitHub Actions builds and publishes:
 
 The widget appears in Xbox Game Bar (`Win+G`) as **Performance Overlay Control** and lets you:
 
-- Switch directly to `FPS`, `FPSWithBattery`, `Battery`, `Minimal`, `Detail`, `Full`
-- `Cycle`, `Show`, `Hide`, or `Toggle` the overlay
+- Switch directly to `FPS`, `Battery`, `FPSWithBattery`, `Minimal`, `Detail`, `Full`
+- `Quick Reset` (sets mode to `FPS`)
+- `Toggle` overlay visibility
+
+Current widget layout (3 columns):
+
+- Row 1: `FPS` | `Battery` | `FPS + Battery`
+- Row 2: `Minimal` | `Detail` | `Full`
+- Row 3 (highlighted): `Quick Reset` | `Toggle`
 
 The widget sends URI commands to `PerformanceOverlay` via:
 
 - `steamdecktools-performanceoverlay://mode/<name>`
-- `steamdecktools-performanceoverlay://cycle`
-- `steamdecktools-performanceoverlay://show`
-- `steamdecktools-performanceoverlay://hide`
 - `steamdecktools-performanceoverlay://toggle`
 
 Run `PerformanceOverlay` once after extracting it so it can register the URI protocol in `HKCU`.
