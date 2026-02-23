@@ -74,15 +74,20 @@ namespace CommonHelpers
                 if (useKernelDrivers == value)
                     return;
 
-                useKernelDrivers = value;
-
                 if (value)
-                    Vlv0100.Instance.Open();
+                {
+                    useKernelDrivers = Vlv0100.Instance.Open();
+                    if (!useKernelDrivers)
+                        Log.TraceLine("Instance: failed to enable kernel drivers.");
+                }
                 else
+                {
                     Vlv0100.Instance.Close();
+                    useKernelDrivers = false;
+                }
 
                 // CPU requires reading RyzenSMU
-                HardwareComputer.IsCpuEnabled = value;
+                HardwareComputer.IsCpuEnabled = useKernelDrivers;
                 HardwareComputer.Reset();
             }
         }
