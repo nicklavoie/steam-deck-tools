@@ -1,9 +1,7 @@
 using System.IO.Pipes;
-using System.Reflection;
 using System.Text.Json;
 using CommonHelpers;
 using PerformanceOverlay;
-using RTSSSharedMemoryNET;
 
 const string PipeName = "NickGameBar.Telemetry.v1";
 using var cancellation = new CancellationTokenSource();
@@ -51,62 +49,8 @@ internal sealed record TelemetrySnapshot(
         };
 
         var values = keys.ToDictionary(k => k, sensors.GetValue);
-        return new TelemetrySnapshot(DateTimeOffset.UtcNow, values, TryGetFps(), TryGetFrameTimeMs());
-    }
 
-    private static double? TryGetFps()
-    {
-        try
-        {
-            OSDHelpers.Applications.Instance.Refresh();
-            var foreground = OSD.GetAppEntries(AppFlags.MASK)
-                .FirstOrDefault(entry => entry.ProcessId == GetForegroundProcessId());
-            return ReadDouble(foreground, "Framerate", "InstantaneousFramerate", "FramesPerSecond");
-        }
-        catch
-        {
-            return null;
-        }
-    }
-
-    private static double? TryGetFrameTimeMs()
-    {
-        try
-        {
-            OSDHelpers.Applications.Instance.Refresh();
-            var foreground = OSD.GetAppEntries(AppFlags.MASK)
-                .FirstOrDefault(entry => entry.ProcessId == GetForegroundProcessId());
-            return ReadDouble(foreground, "Frametime", "InstantaneousFrametime", "FrameTime");
-        }
-        catch
-        {
-            return null;
-        }
-    }
-
-    private static int GetForegroundProcessId()
-    {
-        OSDHelpers.IsOSDForeground(out var processId);
-        return processId;
-    }
-
-    private static double? ReadDouble(object value, params string[] candidates)
-    {
-        if (value is null)
-            return null;
-
-        var type = value.GetType();
-        foreach (var name in candidates)
-        {
-            var property = type.GetProperty(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            if (property?.GetValue(value) is object propertyValue)
-                return Convert.ToDouble(propertyValue);
-
-            var field = type.GetField(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            if (field?.GetValue(value) is object fieldValue)
-                return Convert.ToDouble(fieldValue);
-        }
-
-        return null;
+        // FPS/frametime are optional. Keep nullable fields in schema without a hard RTSS dependency.
+        return new TelemetrySnapshot(DateTimeOffset.UtcNow, values, null, null);
     }
 }
