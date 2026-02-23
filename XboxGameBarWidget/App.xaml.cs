@@ -11,6 +11,7 @@ namespace SteamDeckToolsGameBarWidget
     sealed partial class App : Application
     {
         private XboxGameBarWidget widget = null;
+        internal XboxGameBarWidget ActiveWidget => widget;
 
         public App()
         {
