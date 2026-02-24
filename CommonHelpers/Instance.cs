@@ -86,9 +86,8 @@ namespace CommonHelpers
                     useKernelDrivers = false;
                 }
 
-                // Keep CPU telemetry enabled even when kernel driver access fails.
-                // On non-admin sessions, some CPU sensors are still available via non-SMU paths.
-                HardwareComputer.IsCpuEnabled = true;
+                // CPU requires reading RyzenSMU
+                HardwareComputer.IsCpuEnabled = useKernelDrivers;
                 HardwareComputer.Reset();
             }
         }

@@ -95,7 +95,7 @@ namespace PerformanceOverlay
                     {
                         new Entry("<C4><FR><C><A><A1><S1><C4> FPS<C><S><A>"),
                         new Entry("<C4><A3>{BATT_%}<A><A1><S1> %<C><S><A>") { Include = { OverlayMode.FPSWithBattery }, IgnoreMissing = true },
-                        new Entry("<C4><A4>{BATT_ANY_W}<A><A1><S1> W<C><S><A>") { Include = { OverlayMode.FPSWithBattery }, IgnoreMissing = true },
+                        new Entry("<C4><A4>{BATT_W}<A><A1><S1> W<C><S><A>") { Include = { OverlayMode.FPSWithBattery }, IgnoreMissing = true },
                         new Entry("<C4><A3>{BATT_MIN}<A><A1><S1> min<C><S><A>") { Include = { OverlayMode.FPSWithBattery }, IgnoreMissing = true }
                     },
                     Include = { OverlayMode.FPS, OverlayMode.FPSWithBattery }
