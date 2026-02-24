@@ -41,6 +41,12 @@ namespace PerformanceOverlay
             set { Set("EnableKernelDrivers", value); }
         }
 
+        public bool TelemetryStreamEnabled
+        {
+            get { return Get<bool>("TelemetryStreamEnabled", false); }
+            set { Set("TelemetryStreamEnabled", value); }
+        }
+
         public bool EnableExperimentalFeatures
         {
             get { return Instance.IsDEBUG; }

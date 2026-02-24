@@ -54,6 +54,50 @@
                 </Grid>
             </Border>
 
+            <Border
+                Margin="0,0,0,8"
+                Padding="6"
+                Background="#1C2734"
+                CornerRadius="6">
+                <StackPanel>
+                    <Grid Margin="0,0,0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Foreground="White"
+                            FontWeight="SemiBold"
+                            Text="Telemetry" />
+                        <Button
+                            x:Name="TelemetryToggleButton"
+                            Grid.Column="1"
+                            MinWidth="88"
+                            Margin="6,0,0,0"
+                            Click="TelemetryToggleButton_Click"
+                            Content="Show" />
+                    </Grid>
+
+                    <Border
+                        x:Name="TelemetryPanel"
+                        Padding="6"
+                        Background="#0F151D"
+                        CornerRadius="4"
+                        Visibility="Collapsed">
+                        <ScrollViewer MaxHeight="180">
+                            <TextBlock
+                                x:Name="TelemetryText"
+                                FontFamily="Consolas"
+                                Foreground="#C7D7E6"
+                                Text="Waiting for telemetry..."
+                                TextWrapping="WrapWholeWords" />
+                        </ScrollViewer>
+                    </Border>
+                </StackPanel>
+            </Border>
+
             <TextBlock
                 x:Name="StatusText"
                 Foreground="#B7C7D6"
