@@ -3,6 +3,8 @@ using ExternalHelpers;
 using RTSSSharedMemoryNET;
 using System.ComponentModel;
 using System.Globalization;
+using System.IO;
+using System.Text;
 
 namespace PerformanceOverlay
 {
@@ -26,6 +28,12 @@ namespace PerformanceOverlay
         SharedData<OverlayModeSetting> sharedData = SharedData<OverlayModeSetting>.CreateNew();
         uint telemetrySequence = 0;
         OverlayTelemetrySnapshot latestTelemetry = CreateEmptyTelemetrySnapshot();
+        bool telemetryFileStreamingEnabled = Settings.Default.TelemetryStreamEnabled;
+        DateTime lastTelemetryFileWriteUtc = DateTime.MinValue;
+        DateTime lastWidgetPathRefreshUtc = DateTime.MinValue;
+        List<string> widgetTelemetryFilePaths = new List<string>();
+        const string WidgetPackageFolderPrefix = "SteamDeckToolsGameBarWidget_";
+        const string WidgetTelemetryFileName = "telemetry.txt";
 
         static Controller()
         {
@@ -229,6 +237,12 @@ namespace PerformanceOverlay
                     setKernelDrivers((KernelDriversLoaded)value.DesiredKernelDriversLoaded == KernelDriversLoaded.Yes);
                     updateContextItems(contextMenu);
                 }
+
+                if (Enum.IsDefined<OverlayTelemetryStream>(value.DesiredTelemetryStream))
+                {
+                    telemetryFileStreamingEnabled = (OverlayTelemetryStream)value.DesiredTelemetryStream == OverlayTelemetryStream.Enabled;
+                    Settings.Default.TelemetryStreamEnabled = telemetryFileStreamingEnabled;
+                }
             }
 
             WriteCurrentSharedState();
@@ -241,6 +255,7 @@ namespace PerformanceOverlay
                 Current = Settings.Default.OSDMode,
                 CurrentEnabled = Settings.Default.ShowOSD ? OverlayEnabled.Yes : OverlayEnabled.No,
                 KernelDriversLoaded = Instance.UseKernelDrivers ? KernelDriversLoaded.Yes : KernelDriversLoaded.No,
+                CurrentTelemetryStream = telemetryFileStreamingEnabled ? OverlayTelemetryStream.Enabled : OverlayTelemetryStream.Disabled,
 
                 CPU_Percent = latestTelemetry.CPU_Percent,
                 CPU_Watts = latestTelemetry.CPU_Watts,
@@ -267,6 +282,98 @@ namespace PerformanceOverlay
                 TelemetrySequence = latestTelemetry.Sequence,
                 TelemetryTimestampUnixSeconds = latestTelemetry.TimestampUnixSeconds
             });
+        }
+
+        private void TryWriteWidgetTelemetryFile()
+        {
+            var nowUtc = DateTime.UtcNow;
+            if ((nowUtc - lastTelemetryFileWriteUtc).TotalMilliseconds < 700)
+                return;
+
+            lastTelemetryFileWriteUtc = nowUtc;
+            RefreshWidgetTelemetryFilePaths(nowUtc);
+            if (widgetTelemetryFilePaths.Count == 0)
+                return;
+
+            var content = BuildTelemetryText();
+            foreach (var filePath in widgetTelemetryFilePaths)
+            {
+                try
+                {
+                    var directory = Path.GetDirectoryName(filePath);
+                    if (!string.IsNullOrEmpty(directory))
+                        Directory.CreateDirectory(directory);
+
+                    File.WriteAllText(filePath, content, Encoding.UTF8);
+                }
+                catch
+                {
+                }
+            }
+        }
+
+        private void RefreshWidgetTelemetryFilePaths(DateTime nowUtc)
+        {
+            if ((nowUtc - lastWidgetPathRefreshUtc).TotalSeconds < 10 && widgetTelemetryFilePaths.Count > 0)
+                return;
+
+            lastWidgetPathRefreshUtc = nowUtc;
+            widgetTelemetryFilePaths.Clear();
+
+            try
+            {
+                var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                var packagesPath = Path.Combine(localAppData, "Packages");
+                if (!Directory.Exists(packagesPath))
+                    return;
+
+                foreach (var packagePath in Directory.GetDirectories(packagesPath, WidgetPackageFolderPrefix + "*"))
+                {
+                    widgetTelemetryFilePaths.Add(Path.Combine(packagePath, "LocalState", WidgetTelemetryFileName));
+                }
+            }
+            catch
+            {
+            }
+        }
+
+        private string BuildTelemetryText()
+        {
+            return string.Join(Environment.NewLine, new[]
+            {
+                "CPU_%=" + FormatTelemetryValue(latestTelemetry.CPU_Percent),
+                "CPU_W=" + FormatTelemetryValue(latestTelemetry.CPU_Watts),
+                "CPU_T=" + FormatTelemetryValue(latestTelemetry.CPU_Temperature),
+                "CPU_MHZ=" + FormatTelemetryValue(latestTelemetry.CPU_MHz),
+                "MEM_GB=" + FormatTelemetryValue(latestTelemetry.MEM_GB),
+                "MEM_MB=" + FormatTelemetryValue(latestTelemetry.MEM_MB),
+                "GPU_%=" + FormatTelemetryValue(latestTelemetry.GPU_Percent),
+                "GPU_MB=" + FormatTelemetryValue(latestTelemetry.GPU_MB),
+                "GPU_GB=" + FormatTelemetryValue(latestTelemetry.GPU_GB),
+                "GPU_W=" + FormatTelemetryValue(latestTelemetry.GPU_Watts),
+                "GPU_MHZ=" + FormatTelemetryValue(latestTelemetry.GPU_MHz),
+                "GPU_T=" + FormatTelemetryValue(latestTelemetry.GPU_Temperature),
+                "BATT_%=" + FormatTelemetryValue(latestTelemetry.BATT_Percent),
+                "BATT_MIN=" + FormatTelemetryValue(latestTelemetry.BATT_Minutes),
+                "BATT_W=" + FormatTelemetryValue(latestTelemetry.BATT_DischargeWatts),
+                "BATT_CHARGE_W=" + FormatTelemetryValue(latestTelemetry.BATT_ChargeWatts),
+                "FAN_RPM=" + FormatTelemetryValue(latestTelemetry.FAN_RPM),
+                "TELEMETRY_SEQ=" + latestTelemetry.Sequence.ToString(CultureInfo.InvariantCulture),
+                "TELEMETRY_TS_UNIX=" + latestTelemetry.TimestampUnixSeconds.ToString(CultureInfo.InvariantCulture),
+                string.Empty,
+                "OVERLAY_CURRENT_MODE=" + ((uint)Settings.Default.OSDMode).ToString(CultureInfo.InvariantCulture) + " (" + Settings.Default.OSDMode + ")",
+                "OVERLAY_CURRENT_ENABLED=" + (Settings.Default.ShowOSD ? "1 (Yes)" : "0 (No)"),
+                "OVERLAY_KERNEL=" + (Instance.UseKernelDrivers ? "1 (Yes)" : "0 (No)"),
+                "UPDATED_LOCAL=" + DateTime.Now.ToString("HH:mm:ss.fff")
+            }) + Environment.NewLine;
+        }
+
+        private static string FormatTelemetryValue(float value)
+        {
+            if (float.IsNaN(value) || float.IsInfinity(value))
+                return "n/a";
+
+            return value.ToString("0.###", CultureInfo.InvariantCulture);
         }
 
         private void TelemetryData_Update()
@@ -300,6 +407,8 @@ namespace PerformanceOverlay
 
             latestTelemetry = telemetry;
             WriteCurrentSharedState();
+            if (telemetryFileStreamingEnabled)
+                TryWriteWidgetTelemetryFile();
         }
 
         private static OverlayTelemetrySnapshot CreateEmptyTelemetrySnapshot()

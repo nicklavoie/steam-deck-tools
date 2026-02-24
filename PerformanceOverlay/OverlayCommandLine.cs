@@ -15,7 +15,9 @@ namespace PerformanceOverlay
         CycleMode,
         ToggleVisibility,
         Show,
-        Hide
+        Hide,
+        TelemetryStart,
+        TelemetryStop
     }
 
     internal readonly struct OverlayControlCommand
@@ -52,6 +54,16 @@ namespace PerformanceOverlay
         public static OverlayControlCommand Hide()
         {
             return new OverlayControlCommand(OverlayControlCommandType.Hide);
+        }
+
+        public static OverlayControlCommand TelemetryStart()
+        {
+            return new OverlayControlCommand(OverlayControlCommandType.TelemetryStart);
+        }
+
+        public static OverlayControlCommand TelemetryStop()
+        {
+            return new OverlayControlCommand(OverlayControlCommandType.TelemetryStop);
         }
     }
 
@@ -136,6 +148,26 @@ namespace PerformanceOverlay
                 return true;
             }
 
+            if (head.Equals("telemetry", StringComparison.OrdinalIgnoreCase) && segments.Count > 1)
+            {
+                var telemetryAction = segments[1];
+                if (telemetryAction.Equals("start", StringComparison.OrdinalIgnoreCase)
+                    || telemetryAction.Equals("on", StringComparison.OrdinalIgnoreCase)
+                    || telemetryAction.Equals("enable", StringComparison.OrdinalIgnoreCase))
+                {
+                    command = OverlayControlCommand.TelemetryStart();
+                    return true;
+                }
+
+                if (telemetryAction.Equals("stop", StringComparison.OrdinalIgnoreCase)
+                    || telemetryAction.Equals("off", StringComparison.OrdinalIgnoreCase)
+                    || telemetryAction.Equals("disable", StringComparison.OrdinalIgnoreCase))
+                {
+                    command = OverlayControlCommand.TelemetryStop();
+                    return true;
+                }
+            }
+
             if ((head.Equals("mode", StringComparison.OrdinalIgnoreCase) || head.Equals("set", StringComparison.OrdinalIgnoreCase))
                 && segments.Count > 1
                 && TryParseMode(segments[1], out var uriMode))
@@ -174,6 +206,18 @@ namespace PerformanceOverlay
                 if (arg.Equals("--hide", StringComparison.OrdinalIgnoreCase))
                 {
                     command = OverlayControlCommand.Hide();
+                    return true;
+                }
+
+                if (arg.Equals("--telemetry-start", StringComparison.OrdinalIgnoreCase))
+                {
+                    command = OverlayControlCommand.TelemetryStart();
+                    return true;
+                }
+
+                if (arg.Equals("--telemetry-stop", StringComparison.OrdinalIgnoreCase))
+                {
+                    command = OverlayControlCommand.TelemetryStop();
                     return true;
                 }
 
@@ -253,6 +297,12 @@ namespace PerformanceOverlay
                 case OverlayControlCommandType.Hide:
                     value.DesiredEnabled = OverlayEnabled.No;
                     return;
+                case OverlayControlCommandType.TelemetryStart:
+                    value.DesiredTelemetryStream = OverlayTelemetryStream.Enabled;
+                    return;
+                case OverlayControlCommandType.TelemetryStop:
+                    value.DesiredTelemetryStream = OverlayTelemetryStream.Disabled;
+                    return;
                 default:
                     return;
             }
@@ -296,6 +346,12 @@ namespace PerformanceOverlay
                     return;
                 case OverlayControlCommandType.Hide:
                     Settings.Default.ShowOSD = false;
+                    return;
+                case OverlayControlCommandType.TelemetryStart:
+                    Settings.Default.TelemetryStreamEnabled = true;
+                    return;
+                case OverlayControlCommandType.TelemetryStop:
+                    Settings.Default.TelemetryStreamEnabled = false;
                     return;
                 default:
                     return;

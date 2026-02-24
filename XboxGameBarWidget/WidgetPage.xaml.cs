@@ -1,9 +1,7 @@
 using System;
-using System.Globalization;
 using System.IO;
-using System.IO.MemoryMappedFiles;
-using System.Runtime.InteropServices;
-using System.Text;
+using System.Threading.Tasks;
+using Windows.Storage;
 using Windows.System;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -12,45 +10,12 @@ namespace SteamDeckToolsGameBarWidget
 {
     public sealed partial class WidgetPage : Page
     {
-        private const string OverlayModeSharedDataName = "Global_OverlayModeSetting_Setting";
+        private const string TelemetryFileName = "telemetry.txt";
+        private const string TelemetryStartUri = "steamdecktools-performanceoverlay://telemetry/start";
+        private const string TelemetryStopUri = "steamdecktools-performanceoverlay://telemetry/stop";
         private readonly DispatcherTimer telemetryTimer = new DispatcherTimer();
         private bool telemetryExpanded;
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct OverlayModeSettingSnapshot
-        {
-            public uint Current;
-            public uint Desired;
-            public uint CurrentEnabled;
-            public uint DesiredEnabled;
-            public uint KernelDriversLoaded;
-            public uint DesiredKernelDriversLoaded;
-
-            public float CPU_Percent;
-            public float CPU_Watts;
-            public float CPU_Temperature;
-            public float CPU_MHz;
-
-            public float MEM_GB;
-            public float MEM_MB;
-
-            public float GPU_Percent;
-            public float GPU_MB;
-            public float GPU_GB;
-            public float GPU_Watts;
-            public float GPU_MHz;
-            public float GPU_Temperature;
-
-            public float BATT_Percent;
-            public float BATT_Minutes;
-            public float BATT_DischargeWatts;
-            public float BATT_ChargeWatts;
-
-            public float FAN_RPM;
-
-            public uint TelemetrySequence;
-            public uint TelemetryTimestampUnixSeconds;
-        }
+        private bool telemetryReadInProgress;
 
         public WidgetPage()
         {
@@ -61,7 +26,6 @@ namespace SteamDeckToolsGameBarWidget
             telemetryTimer.Start();
 
             Unloaded += WidgetPage_Unloaded;
-            UpdateTelemetryText();
         }
 
         private async void CommandButton_Click(object sender, RoutedEventArgs e)
@@ -97,168 +61,90 @@ namespace SteamDeckToolsGameBarWidget
             }
         }
 
-        private void TelemetryToggleButton_Click(object sender, RoutedEventArgs e)
+        private async void TelemetryToggleButton_Click(object sender, RoutedEventArgs e)
         {
             telemetryExpanded = !telemetryExpanded;
             TelemetryPanel.Visibility = telemetryExpanded ? Visibility.Visible : Visibility.Collapsed;
             TelemetryToggleButton.Content = telemetryExpanded ? "Hide" : "Show";
 
             if (telemetryExpanded)
-                UpdateTelemetryText();
+            {
+                await SendTelemetryStreamCommandAsync(true);
+                await UpdateTelemetryTextAsync();
+            }
+            else
+            {
+                await SendTelemetryStreamCommandAsync(false);
+            }
         }
 
         private void TelemetryTimer_Tick(object sender, object e)
         {
-            UpdateTelemetryText();
+            if (!telemetryExpanded)
+                return;
+
+            _ = UpdateTelemetryTextAsync();
         }
 
         private void WidgetPage_Unloaded(object sender, RoutedEventArgs e)
         {
+            _ = SendTelemetryStreamCommandAsync(false);
             telemetryTimer.Stop();
             telemetryTimer.Tick -= TelemetryTimer_Tick;
             Unloaded -= WidgetPage_Unloaded;
         }
 
-        private void UpdateTelemetryText()
+        private async Task SendTelemetryStreamCommandAsync(bool enabled)
         {
-            var output = new StringBuilder();
-
-            if (TryReadSharedData<OverlayModeSettingSnapshot>(OverlayModeSharedDataName, out var state, out var stateError))
-            {
-                output.AppendLine("CPU_%=" + FormatValue(state.CPU_Percent));
-                output.AppendLine("CPU_W=" + FormatValue(state.CPU_Watts));
-                output.AppendLine("CPU_T=" + FormatValue(state.CPU_Temperature));
-                output.AppendLine("CPU_MHZ=" + FormatValue(state.CPU_MHz));
-                output.AppendLine("MEM_GB=" + FormatValue(state.MEM_GB));
-                output.AppendLine("MEM_MB=" + FormatValue(state.MEM_MB));
-                output.AppendLine("GPU_%=" + FormatValue(state.GPU_Percent));
-                output.AppendLine("GPU_MB=" + FormatValue(state.GPU_MB));
-                output.AppendLine("GPU_GB=" + FormatValue(state.GPU_GB));
-                output.AppendLine("GPU_W=" + FormatValue(state.GPU_Watts));
-                output.AppendLine("GPU_MHZ=" + FormatValue(state.GPU_MHz));
-                output.AppendLine("GPU_T=" + FormatValue(state.GPU_Temperature));
-                output.AppendLine("BATT_%=" + FormatValue(state.BATT_Percent));
-                output.AppendLine("BATT_MIN=" + FormatValue(state.BATT_Minutes));
-                output.AppendLine("BATT_W=" + FormatValue(state.BATT_DischargeWatts));
-                output.AppendLine("BATT_CHARGE_W=" + FormatValue(state.BATT_ChargeWatts));
-                output.AppendLine("FAN_RPM=" + FormatValue(state.FAN_RPM));
-                output.AppendLine("TELEMETRY_SEQ=" + state.TelemetrySequence);
-                output.AppendLine("TELEMETRY_TS_UNIX=" + state.TelemetryTimestampUnixSeconds);
-
-                output.AppendLine();
-                output.AppendLine("OVERLAY_CURRENT_MODE=" + state.Current + " (" + OverlayModeLabel(state.Current) + ")");
-                output.AppendLine("OVERLAY_DESIRED_MODE=" + state.Desired + " (" + OverlayModeLabel(state.Desired) + ")");
-                output.AppendLine("OVERLAY_CURRENT_ENABLED=" + state.CurrentEnabled + " (" + OverlayEnabledLabel(state.CurrentEnabled) + ")");
-                output.AppendLine("OVERLAY_DESIRED_ENABLED=" + state.DesiredEnabled + " (" + OverlayEnabledLabel(state.DesiredEnabled) + ")");
-                output.AppendLine("OVERLAY_KERNEL=" + state.KernelDriversLoaded + " (" + KernelDriversLabel(state.KernelDriversLoaded) + ")");
-                output.AppendLine("OVERLAY_DESIRED_KERNEL=" + state.DesiredKernelDriversLoaded + " (" + KernelDriversLabel(state.DesiredKernelDriversLoaded) + ")");
-            }
-            else
-            {
-                output.AppendLine(stateError);
-            }
-
-            output.AppendLine();
-            output.AppendLine("UPDATED_LOCAL=" + DateTime.Now.ToString("HH:mm:ss.fff"));
-
-            TelemetryText.Text = output.ToString().TrimEnd();
-        }
-
-        private static string FormatValue(float value)
-        {
-            if (float.IsNaN(value) || float.IsInfinity(value))
-                return "n/a";
-
-            return value.ToString("0.###", CultureInfo.InvariantCulture);
-        }
-
-        private static bool TryReadSharedData<T>(string mapName, out T snapshot, out string errorText) where T : struct
-        {
-            snapshot = default(T);
-            errorText = string.Empty;
-
-            var payloadSize = Marshal.SizeOf(typeof(T));
+            var targetUri = enabled ? TelemetryStartUri : TelemetryStopUri;
 
             try
             {
-                using (var mmf = MemoryMappedFile.OpenExisting(mapName, MemoryMappedFileRights.Read))
-                using (var stream = mmf.CreateViewStream(0, payloadSize, MemoryMappedFileAccess.Read))
+                Uri uri;
+                if (!Uri.TryCreate(targetUri, UriKind.Absolute, out uri))
+                    return;
+
+                var app = Application.Current as App;
+                if (app?.ActiveWidget != null)
+                    await app.ActiveWidget.LaunchUriAsync(uri);
+                else
+                    await Launcher.LaunchUriAsync(uri);
+            }
+            catch
+            {
+            }
+        }
+
+        private async Task UpdateTelemetryTextAsync()
+        {
+            if (telemetryReadInProgress)
+                return;
+
+            telemetryReadInProgress = true;
+            try
+            {
+                StorageFile file = await ApplicationData.Current.LocalFolder.GetFileAsync(TelemetryFileName);
+                string content = await FileIO.ReadTextAsync(file);
+
+                if (string.IsNullOrWhiteSpace(content))
                 {
-                    var buffer = new byte[payloadSize];
-                    var bytesRead = stream.Read(buffer, 0, buffer.Length);
-                    if (bytesRead < payloadSize)
-                    {
-                        errorText = "Telemetry payload incomplete: " + bytesRead + "/" + payloadSize;
-                        return false;
-                    }
-
-                    var handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-                    try
-                    {
-                        var value = Marshal.PtrToStructure(handle.AddrOfPinnedObject(), typeof(T));
-                        if (value is T typedValue)
-                        {
-                            snapshot = typedValue;
-                            return true;
-                        }
-
-                        errorText = "Telemetry payload decode failed.";
-                        return false;
-                    }
-                    finally
-                    {
-                        handle.Free();
-                    }
+                    TelemetryText.Text = "Telemetry unavailable. Waiting for PerformanceOverlay telemetry file.";
+                    return;
                 }
+
+                TelemetryText.Text = content.TrimEnd() + Environment.NewLine + "UPDATED_WIDGET=" + DateTime.Now.ToString("HH:mm:ss.fff");
             }
             catch (FileNotFoundException)
             {
-                errorText = "Telemetry unavailable. Start PerformanceOverlay.";
-                return false;
-            }
-            catch (UnauthorizedAccessException)
-            {
-                errorText = "Telemetry unavailable. Shared memory access denied: " + mapName;
-                return false;
+                TelemetryText.Text = "Telemetry unavailable. Waiting for PerformanceOverlay telemetry file.";
             }
             catch (Exception ex)
             {
-                errorText = "Telemetry read failed: 0x" + ex.HResult.ToString("X8");
-                return false;
+                TelemetryText.Text = "Telemetry read failed: 0x" + ex.HResult.ToString("X8");
             }
-        }
-
-        private static string OverlayModeLabel(uint value)
-        {
-            switch (value)
+            finally
             {
-                case 10032: return "FPS";
-                case 10033: return "FPSWithBattery";
-                case 10034: return "Battery";
-                case 10035: return "Minimal";
-                case 10036: return "Detail";
-                case 10037: return "Full";
-                default: return "Unset";
-            }
-        }
-
-        private static string OverlayEnabledLabel(uint value)
-        {
-            switch (value)
-            {
-                case 378313: return "Yes";
-                case 378314: return "No";
-                default: return "Unset";
-            }
-        }
-
-        private static string KernelDriversLabel(uint value)
-        {
-            switch (value)
-            {
-                case 4363232: return "Yes";
-                case 4363233: return "No";
-                default: return "Unset";
+                telemetryReadInProgress = false;
             }
         }
     }

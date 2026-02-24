@@ -24,6 +24,12 @@ namespace CommonHelpers
         No
     }
 
+    public enum OverlayTelemetryStream : uint
+    {
+        Enabled = 983451,
+        Disabled
+    }
+
     [StructLayout(LayoutKind.Sequential)]
     public struct OverlayModeSetting
     {
@@ -31,6 +37,8 @@ namespace CommonHelpers
         public OverlayEnabled CurrentEnabled, DesiredEnabled;
         public KernelDriversLoaded KernelDriversLoaded;
         public KernelDriversLoaded DesiredKernelDriversLoaded;
+        public OverlayTelemetryStream CurrentTelemetryStream;
+        public OverlayTelemetryStream DesiredTelemetryStream;
 
         public float CPU_Percent;
         public float CPU_Watts;
