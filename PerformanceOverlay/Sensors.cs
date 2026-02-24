@@ -29,11 +29,13 @@ namespace PerformanceOverlay
             {
                 if (value is null)
                     return null;
-                if (value == 0 && IgnoreZero)
+                value *= Multiplier;
+                var output = value.Value.ToString(Format, CultureInfo.GetCultureInfo("en-US"));
+
+                if (IgnoreZero && float.TryParse(output, NumberStyles.Float, CultureInfo.GetCultureInfo("en-US"), out var parsedOutput) && parsedOutput == 0)
                     return null;
 
-                value *= Multiplier;
-                return value.Value.ToString(Format, CultureInfo.GetCultureInfo("en-US"));
+                return output;
             }
         }
 
@@ -178,7 +180,8 @@ namespace PerformanceOverlay
                     HardwareNames = { "AMD Custom APU 0405", "AMD Custom APU 0932" },
                     SensorType = SensorType.Power,
                     SensorName = "Package",
-                    Format = "F1"
+                    Format = "F1",
+                    IgnoreZero = true
                 }
             },
             {
@@ -318,7 +321,8 @@ namespace PerformanceOverlay
                     HardwareType = HardwareType.Battery,
                     SensorType = SensorType.Power,
                     SensorName = "Discharge Rate",
-                    Format = "F1"
+                    Format = "F1",
+                    IgnoreZero = true
                 }
             },
             {
@@ -327,7 +331,33 @@ namespace PerformanceOverlay
                     HardwareType = HardwareType.Battery,
                     SensorType = SensorType.Power,
                     SensorName = "Charge Rate",
-                    Format = "F1"
+                    Format = "F1",
+                    IgnoreZero = true
+                }
+            },
+            {
+                "BATT_ANY_W", new CompositeSensor()
+                {
+                    Aggregate = CompositeSensor.AggregateType.First,
+                    Sensors =
+                    {
+                        new HardwareSensor()
+                        {
+                            HardwareType = HardwareType.Battery,
+                            SensorType = SensorType.Power,
+                            SensorName = "Discharge Rate",
+                            Format = "F1",
+                            IgnoreZero = true
+                        },
+                        new HardwareSensor()
+                        {
+                            HardwareType = HardwareType.Battery,
+                            SensorType = SensorType.Power,
+                            SensorName = "Charge Rate",
+                            Format = "F1",
+                            IgnoreZero = true
+                        }
+                    }
                 }
             },
             {
