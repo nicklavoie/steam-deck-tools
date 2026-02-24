@@ -13,7 +13,6 @@ namespace SteamDeckToolsGameBarWidget
     public sealed partial class WidgetPage : Page
     {
         private const string OverlayModeSharedDataName = "Global_OverlayModeSetting_Setting";
-        private const string OverlayTelemetrySharedDataName = "Global_OverlayTelemetrySnapshot_Setting";
         private readonly DispatcherTimer telemetryTimer = new DispatcherTimer();
         private bool telemetryExpanded;
 
@@ -26,11 +25,7 @@ namespace SteamDeckToolsGameBarWidget
             public uint DesiredEnabled;
             public uint KernelDriversLoaded;
             public uint DesiredKernelDriversLoaded;
-        }
 
-        [StructLayout(LayoutKind.Sequential)]
-        private struct OverlayTelemetrySnapshot
-        {
             public float CPU_Percent;
             public float CPU_Watts;
             public float CPU_Temperature;
@@ -53,8 +48,8 @@ namespace SteamDeckToolsGameBarWidget
 
             public float FAN_RPM;
 
-            public uint Sequence;
-            public uint TimestampUnixSeconds;
+            public uint TelemetrySequence;
+            public uint TelemetryTimestampUnixSeconds;
         }
 
         public WidgetPage()
@@ -128,35 +123,28 @@ namespace SteamDeckToolsGameBarWidget
         {
             var output = new StringBuilder();
 
-            if (TryReadSharedData<OverlayTelemetrySnapshot>(OverlayTelemetrySharedDataName, out var telemetry, out var telemetryError))
-            {
-                output.AppendLine("CPU_%=" + FormatValue(telemetry.CPU_Percent));
-                output.AppendLine("CPU_W=" + FormatValue(telemetry.CPU_Watts));
-                output.AppendLine("CPU_T=" + FormatValue(telemetry.CPU_Temperature));
-                output.AppendLine("CPU_MHZ=" + FormatValue(telemetry.CPU_MHz));
-                output.AppendLine("MEM_GB=" + FormatValue(telemetry.MEM_GB));
-                output.AppendLine("MEM_MB=" + FormatValue(telemetry.MEM_MB));
-                output.AppendLine("GPU_%=" + FormatValue(telemetry.GPU_Percent));
-                output.AppendLine("GPU_MB=" + FormatValue(telemetry.GPU_MB));
-                output.AppendLine("GPU_GB=" + FormatValue(telemetry.GPU_GB));
-                output.AppendLine("GPU_W=" + FormatValue(telemetry.GPU_Watts));
-                output.AppendLine("GPU_MHZ=" + FormatValue(telemetry.GPU_MHz));
-                output.AppendLine("GPU_T=" + FormatValue(telemetry.GPU_Temperature));
-                output.AppendLine("BATT_%=" + FormatValue(telemetry.BATT_Percent));
-                output.AppendLine("BATT_MIN=" + FormatValue(telemetry.BATT_Minutes));
-                output.AppendLine("BATT_W=" + FormatValue(telemetry.BATT_DischargeWatts));
-                output.AppendLine("BATT_CHARGE_W=" + FormatValue(telemetry.BATT_ChargeWatts));
-                output.AppendLine("FAN_RPM=" + FormatValue(telemetry.FAN_RPM));
-                output.AppendLine("TELEMETRY_SEQ=" + telemetry.Sequence);
-                output.AppendLine("TELEMETRY_TS_UNIX=" + telemetry.TimestampUnixSeconds);
-            }
-            else
-            {
-                output.AppendLine(telemetryError);
-            }
-
             if (TryReadSharedData<OverlayModeSettingSnapshot>(OverlayModeSharedDataName, out var state, out var stateError))
             {
+                output.AppendLine("CPU_%=" + FormatValue(state.CPU_Percent));
+                output.AppendLine("CPU_W=" + FormatValue(state.CPU_Watts));
+                output.AppendLine("CPU_T=" + FormatValue(state.CPU_Temperature));
+                output.AppendLine("CPU_MHZ=" + FormatValue(state.CPU_MHz));
+                output.AppendLine("MEM_GB=" + FormatValue(state.MEM_GB));
+                output.AppendLine("MEM_MB=" + FormatValue(state.MEM_MB));
+                output.AppendLine("GPU_%=" + FormatValue(state.GPU_Percent));
+                output.AppendLine("GPU_MB=" + FormatValue(state.GPU_MB));
+                output.AppendLine("GPU_GB=" + FormatValue(state.GPU_GB));
+                output.AppendLine("GPU_W=" + FormatValue(state.GPU_Watts));
+                output.AppendLine("GPU_MHZ=" + FormatValue(state.GPU_MHz));
+                output.AppendLine("GPU_T=" + FormatValue(state.GPU_Temperature));
+                output.AppendLine("BATT_%=" + FormatValue(state.BATT_Percent));
+                output.AppendLine("BATT_MIN=" + FormatValue(state.BATT_Minutes));
+                output.AppendLine("BATT_W=" + FormatValue(state.BATT_DischargeWatts));
+                output.AppendLine("BATT_CHARGE_W=" + FormatValue(state.BATT_ChargeWatts));
+                output.AppendLine("FAN_RPM=" + FormatValue(state.FAN_RPM));
+                output.AppendLine("TELEMETRY_SEQ=" + state.TelemetrySequence);
+                output.AppendLine("TELEMETRY_TS_UNIX=" + state.TelemetryTimestampUnixSeconds);
+
                 output.AppendLine();
                 output.AppendLine("OVERLAY_CURRENT_MODE=" + state.Current + " (" + OverlayModeLabel(state.Current) + ")");
                 output.AppendLine("OVERLAY_DESIRED_MODE=" + state.Desired + " (" + OverlayModeLabel(state.Desired) + ")");
@@ -167,7 +155,6 @@ namespace SteamDeckToolsGameBarWidget
             }
             else
             {
-                output.AppendLine();
                 output.AppendLine(stateError);
             }
 

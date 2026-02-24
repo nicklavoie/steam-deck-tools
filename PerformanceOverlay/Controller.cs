@@ -24,8 +24,8 @@ namespace PerformanceOverlay
         );
 
         SharedData<OverlayModeSetting> sharedData = SharedData<OverlayModeSetting>.CreateNew();
-        SharedData<OverlayTelemetrySnapshot> telemetryData = SharedData<OverlayTelemetrySnapshot>.CreateNew();
         uint telemetrySequence = 0;
+        OverlayTelemetrySnapshot latestTelemetry = CreateEmptyTelemetrySnapshot();
 
         static Controller()
         {
@@ -231,17 +231,47 @@ namespace PerformanceOverlay
                 }
             }
 
+            WriteCurrentSharedState();
+        }
+
+        private void WriteCurrentSharedState()
+        {
             sharedData.SetValue(new OverlayModeSetting()
             {
                 Current = Settings.Default.OSDMode,
                 CurrentEnabled = Settings.Default.ShowOSD ? OverlayEnabled.Yes : OverlayEnabled.No,
-                KernelDriversLoaded = Instance.UseKernelDrivers ? KernelDriversLoaded.Yes : KernelDriversLoaded.No
+                KernelDriversLoaded = Instance.UseKernelDrivers ? KernelDriversLoaded.Yes : KernelDriversLoaded.No,
+
+                CPU_Percent = latestTelemetry.CPU_Percent,
+                CPU_Watts = latestTelemetry.CPU_Watts,
+                CPU_Temperature = latestTelemetry.CPU_Temperature,
+                CPU_MHz = latestTelemetry.CPU_MHz,
+
+                MEM_GB = latestTelemetry.MEM_GB,
+                MEM_MB = latestTelemetry.MEM_MB,
+
+                GPU_Percent = latestTelemetry.GPU_Percent,
+                GPU_MB = latestTelemetry.GPU_MB,
+                GPU_GB = latestTelemetry.GPU_GB,
+                GPU_Watts = latestTelemetry.GPU_Watts,
+                GPU_MHz = latestTelemetry.GPU_MHz,
+                GPU_Temperature = latestTelemetry.GPU_Temperature,
+
+                BATT_Percent = latestTelemetry.BATT_Percent,
+                BATT_Minutes = latestTelemetry.BATT_Minutes,
+                BATT_DischargeWatts = latestTelemetry.BATT_DischargeWatts,
+                BATT_ChargeWatts = latestTelemetry.BATT_ChargeWatts,
+
+                FAN_RPM = latestTelemetry.FAN_RPM,
+
+                TelemetrySequence = latestTelemetry.Sequence,
+                TelemetryTimestampUnixSeconds = latestTelemetry.TimestampUnixSeconds
             });
         }
 
         private void TelemetryData_Update()
         {
-            var telemetry = telemetryData.NewValue();
+            var telemetry = CreateEmptyTelemetrySnapshot();
 
             telemetry.CPU_Percent = ParseSensorValue(sensors.GetValue("CPU_%"));
             telemetry.CPU_Watts = ParseSensorValue(sensors.GetValue("CPU_W"));
@@ -268,7 +298,32 @@ namespace PerformanceOverlay
             telemetry.Sequence = ++telemetrySequence;
             telemetry.TimestampUnixSeconds = (uint)DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
-            telemetryData.SetValue(telemetry);
+            latestTelemetry = telemetry;
+            WriteCurrentSharedState();
+        }
+
+        private static OverlayTelemetrySnapshot CreateEmptyTelemetrySnapshot()
+        {
+            return new OverlayTelemetrySnapshot()
+            {
+                CPU_Percent = float.NaN,
+                CPU_Watts = float.NaN,
+                CPU_Temperature = float.NaN,
+                CPU_MHz = float.NaN,
+                MEM_GB = float.NaN,
+                MEM_MB = float.NaN,
+                GPU_Percent = float.NaN,
+                GPU_MB = float.NaN,
+                GPU_GB = float.NaN,
+                GPU_Watts = float.NaN,
+                GPU_MHz = float.NaN,
+                GPU_Temperature = float.NaN,
+                BATT_Percent = float.NaN,
+                BATT_Minutes = float.NaN,
+                BATT_DischargeWatts = float.NaN,
+                BATT_ChargeWatts = float.NaN,
+                FAN_RPM = float.NaN
+            };
         }
 
         private static float ParseSensorValue(string? value)
@@ -388,7 +443,6 @@ namespace PerformanceOverlay
         public void Dispose()
         {
             components.Dispose();
-            telemetryData.Dispose();
             osdClose();
             using (sensors) { }
         }
