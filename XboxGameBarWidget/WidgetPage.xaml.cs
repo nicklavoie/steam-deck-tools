@@ -231,7 +231,7 @@ namespace SteamDeckToolsGameBarWidget
             }
             catch (UnauthorizedAccessException)
             {
-                errorText = "Telemetry unavailable. Shared memory access denied.";
+                errorText = "Telemetry unavailable. Shared memory access denied: " + mapName;
                 return false;
             }
             catch (Exception ex)

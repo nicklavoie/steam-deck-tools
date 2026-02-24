@@ -142,10 +142,13 @@ namespace CommonHelpers
         public static SharedData<T> CreateNew(String? name = null)
         {
             int size = AlignedSize();
+            string mapName = name ?? GetUniqueName();
+
+            SharedDataNative.EnsureAccessibleMapExists(mapName, size);
 
             return new SharedData<T>(size)
             {
-                mmf = MemoryMappedFile.CreateOrOpen(name ?? GetUniqueName(), size)
+                mmf = MemoryMappedFile.CreateOrOpen(mapName, size)
             };
         }
 
@@ -158,5 +161,90 @@ namespace CommonHelpers
                 mmf = MemoryMappedFile.OpenExisting(name ?? GetUniqueName())
             };
         }
+    }
+
+    internal static class SharedDataNative
+    {
+        private const uint SddlRevision1 = 1;
+        private const uint PageReadWrite = 0x04;
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct SecurityAttributes
+        {
+            public int nLength;
+            public IntPtr lpSecurityDescriptor;
+            public int bInheritHandle;
+        }
+
+        public static void EnsureAccessibleMapExists(string mapName, int size)
+        {
+            // Grants read to app-container packages so UWP/Game Bar widget can open the map.
+            const string sddl = "D:(A;;GA;;;SY)(A;;GA;;;BA)(A;;GA;;;OW)(A;;GR;;;AC)(A;;GR;;;S-1-15-2-2)";
+            IntPtr securityDescriptor = IntPtr.Zero;
+            IntPtr mapHandle = IntPtr.Zero;
+
+            try
+            {
+                if (!ConvertStringSecurityDescriptorToSecurityDescriptorW(
+                        sddl,
+                        SddlRevision1,
+                        out securityDescriptor,
+                        IntPtr.Zero))
+                {
+                    return;
+                }
+
+                var securityAttributes = new SecurityAttributes
+                {
+                    nLength = Marshal.SizeOf<SecurityAttributes>(),
+                    lpSecurityDescriptor = securityDescriptor,
+                    bInheritHandle = 0
+                };
+
+                mapHandle = CreateFileMappingW(
+                    new IntPtr(-1),
+                    ref securityAttributes,
+                    PageReadWrite,
+                    0,
+                    (uint)size,
+                    mapName
+                );
+            }
+            catch
+            {
+                // fallback to default behavior below
+            }
+            finally
+            {
+                if (mapHandle != IntPtr.Zero)
+                    CloseHandle(mapHandle);
+                if (securityDescriptor != IntPtr.Zero)
+                    LocalFree(securityDescriptor);
+            }
+        }
+
+        [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true, EntryPoint = "ConvertStringSecurityDescriptorToSecurityDescriptorW")]
+        private static extern bool ConvertStringSecurityDescriptorToSecurityDescriptorW(
+            string stringSecurityDescriptor,
+            uint stringSdRevision,
+            out IntPtr securityDescriptor,
+            IntPtr securityDescriptorSize
+        );
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true, EntryPoint = "CreateFileMappingW")]
+        private static extern IntPtr CreateFileMappingW(
+            IntPtr hFile,
+            ref SecurityAttributes lpFileMappingAttributes,
+            uint flProtect,
+            uint dwMaximumSizeHigh,
+            uint dwMaximumSizeLow,
+            string lpName
+        );
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern bool CloseHandle(IntPtr hObject);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern IntPtr LocalFree(IntPtr hMem);
     }
 }
