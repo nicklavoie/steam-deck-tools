@@ -8,7 +8,11 @@
     mc:Ignorable="d">
 
     <Grid Background="#15181F">
-        <StackPanel Margin="12">
+        <ScrollViewer
+            VerticalScrollBarVisibility="Auto"
+            HorizontalScrollBarVisibility="Disabled"
+            ZoomMode="Disabled">
+            <StackPanel Margin="12">
             <TextBlock
                 Margin="0,0,0,8"
                 FontSize="16"
@@ -106,6 +110,7 @@
                 Foreground="#B7C7D6"
                 Text="Requires PerformanceOverlay running at least once to register the URI protocol."
                 TextWrapping="Wrap" />
-        </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
     </Grid>
 </Page>

@@ -8,6 +8,7 @@ namespace PerformanceOverlay
     internal class Controller : IDisposable
     {
         private const int OSDPositionMarginPixels = 5;
+        private const string RTSSGlobalProfile = "Global";
 
         public const String Title = "Performance Overlay";
         public static readonly String TitleWithVersion = Title + " v" + System.Windows.Forms.Application.ProductVersion.ToString();
@@ -361,14 +362,20 @@ namespace PerformanceOverlay
         {
             try
             {
-                RTSS.LoadProfile();
+                RTSS.LoadProfile(RTSSGlobalProfile);
                 if (!RTSS.SetProfileProperty<int>("PositionX", x))
                     return false;
 
                 if (!RTSS.SetProfileProperty<int>("PositionY", y))
                     return false;
 
-                RTSS.SaveProfile();
+                if (!RTSS.GetProfileProperty<int>("PositionX", out var currentX) || currentX != x)
+                    return false;
+
+                if (!RTSS.GetProfileProperty<int>("PositionY", out var currentY) || currentY != y)
+                    return false;
+
+                RTSS.SaveProfile(RTSSGlobalProfile);
                 RTSS.UpdateProfiles();
                 RTSS.UpdateSettings();
                 return true;
