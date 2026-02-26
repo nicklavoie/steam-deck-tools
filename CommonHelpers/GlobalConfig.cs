@@ -24,6 +24,14 @@ namespace CommonHelpers
         No
     }
 
+    public enum OverlayPosition : uint
+    {
+        TopLeft = 901271,
+        TopRight,
+        BottomLeft,
+        BottomRight
+    }
+
     [StructLayout(LayoutKind.Sequential)]
     public struct OverlayModeSetting
     {
@@ -31,5 +39,6 @@ namespace CommonHelpers
         public OverlayEnabled CurrentEnabled, DesiredEnabled;
         public KernelDriversLoaded KernelDriversLoaded;
         public KernelDriversLoaded DesiredKernelDriversLoaded;
+        public OverlayPosition CurrentPosition, DesiredPosition;
     }
 }
