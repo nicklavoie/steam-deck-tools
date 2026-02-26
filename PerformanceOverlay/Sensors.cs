@@ -24,6 +24,7 @@ namespace PerformanceOverlay
             public String? Format { get; set; }
             public float Multiplier { get; set; } = 1.0f;
             public bool IgnoreZero { get; set; }
+            public float? IgnoreAbsBelow { get; set; }
 
             protected string? ConvertToString(float? value)
             {
@@ -33,6 +34,9 @@ namespace PerformanceOverlay
                     return null;
 
                 value *= Multiplier;
+                if (IgnoreAbsBelow.HasValue && Math.Abs(value.Value) < IgnoreAbsBelow.Value)
+                    return null;
+
                 return value.Value.ToString(Format, CultureInfo.GetCultureInfo("en-US"));
             }
         }
@@ -178,7 +182,8 @@ namespace PerformanceOverlay
                     HardwareNames = { "AMD Custom APU 0405", "AMD Custom APU 0932" },
                     SensorType = SensorType.Power,
                     SensorName = "Package",
-                    Format = "F1"
+                    Format = "F1",
+                    IgnoreAbsBelow = 0.1f
                 }
             },
             {
@@ -269,7 +274,8 @@ namespace PerformanceOverlay
                     HardwareNames = { "AMD Custom GPU 0932", "AMD Custom GPU 0405", "AMD Radeon 670M", "AMD Radeon RX 670 Graphics" },
                     SensorType = SensorType.Power,
                     SensorName = "GPU SoC",
-                    Format = "F1"
+                    Format = "F1",
+                    IgnoreAbsBelow = 0.1f
                 }
             },
             {
@@ -318,7 +324,8 @@ namespace PerformanceOverlay
                     HardwareType = HardwareType.Battery,
                     SensorType = SensorType.Power,
                     SensorName = "Discharge Rate",
-                    Format = "F1"
+                    Format = "F1",
+                    IgnoreAbsBelow = 0.1f
                 }
             },
             {
@@ -327,7 +334,8 @@ namespace PerformanceOverlay
                     HardwareType = HardwareType.Battery,
                     SensorType = SensorType.Power,
                     SensorName = "Charge Rate",
-                    Format = "F1"
+                    Format = "F1",
+                    IgnoreAbsBelow = 0.1f
                 }
             },
             {

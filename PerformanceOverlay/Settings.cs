@@ -35,6 +35,12 @@ namespace PerformanceOverlay
             set { Set("ShowOSD", value); }
         }
 
+        public OverlayPosition OSDPosition
+        {
+            get { return Get<OverlayPosition>("OSDPosition", OverlayPosition.TopLeft); }
+            set { Set("OSDPosition", value); }
+        }
+
         public bool EnableKernelDrivers
         {
             get { return Get<bool>("EnableKernelDrivers", false); }

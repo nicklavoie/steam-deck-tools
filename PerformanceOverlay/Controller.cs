@@ -7,6 +7,8 @@ namespace PerformanceOverlay
 {
     internal class Controller : IDisposable
     {
+        private const int OSDPositionMarginPixels = 5;
+
         public const String Title = "Performance Overlay";
         public static readonly String TitleWithVersion = Title + " v" + System.Windows.Forms.Application.ProductVersion.ToString();
 
@@ -70,6 +72,21 @@ namespace PerformanceOverlay
                 };
                 contextMenu.Items.Add(modeItem);
             }
+
+            var positionMenuItem = new ToolStripMenuItem("&Position");
+            foreach (var position in Enum.GetValues<OverlayPosition>())
+            {
+                var positionItem = new ToolStripMenuItem(position.ToString());
+                positionItem.Tag = position;
+                positionItem.Click += delegate
+                {
+                    Settings.Default.OSDPosition = position;
+                    updateContextItems(contextMenu);
+                };
+                positionMenuItem.DropDownItems.Add(positionItem);
+            }
+            contextMenu.Items.Add(positionMenuItem);
+
             updateContextItems(contextMenu);
 
             contextMenu.Items.Add(new ToolStripSeparator());
@@ -153,13 +170,25 @@ namespace PerformanceOverlay
 
         private void updateContextItems(ContextMenuStrip contextMenu)
         {
-            foreach (ToolStripItem item in contextMenu.Items)
-            {
-                if (item.Tag is OverlayMode)
-                    ((ToolStripMenuItem)item).Checked = ((OverlayMode)item.Tag == Settings.Default.OSDMode);
-            }
-
+            updateContextItems(contextMenu.Items);
             showItem.Checked = Settings.Default.ShowOSD;
+        }
+
+        private void updateContextItems(ToolStripItemCollection items)
+        {
+            foreach (ToolStripItem item in items)
+            {
+                if (item is ToolStripMenuItem menuItem)
+                {
+                    if (item.Tag is OverlayMode mode)
+                        menuItem.Checked = mode == Settings.Default.OSDMode;
+                    else if (item.Tag is OverlayPosition position)
+                        menuItem.Checked = position == Settings.Default.OSDPosition;
+
+                    if (menuItem.DropDownItems.Count > 0)
+                        updateContextItems(menuItem.DropDownItems);
+                }
+            }
         }
 
         private void NotifyIcon_Click(object? sender, EventArgs e)
@@ -226,13 +255,20 @@ namespace PerformanceOverlay
                     setKernelDrivers((KernelDriversLoaded)value.DesiredKernelDriversLoaded == KernelDriversLoaded.Yes);
                     updateContextItems(contextMenu);
                 }
+
+                if (Enum.IsDefined<OverlayPosition>(value.DesiredPosition))
+                {
+                    Settings.Default.OSDPosition = value.DesiredPosition;
+                    updateContextItems(contextMenu);
+                }
             }
 
             sharedData.SetValue(new OverlayModeSetting()
             {
                 Current = Settings.Default.OSDMode,
                 CurrentEnabled = Settings.Default.ShowOSD ? OverlayEnabled.Yes : OverlayEnabled.No,
-                KernelDriversLoaded = Instance.UseKernelDrivers ? KernelDriversLoaded.Yes : KernelDriversLoaded.No
+                KernelDriversLoaded = Instance.UseKernelDrivers ? KernelDriversLoaded.Yes : KernelDriversLoaded.No,
+                CurrentPosition = Settings.Default.OSDPosition
             });
         }
 
@@ -260,6 +296,8 @@ namespace PerformanceOverlay
                 osdReset();
                 return;
             }
+
+            ApplyOSDPosition();
 
             if (!Settings.Default.ShowOSD)
             {
@@ -295,6 +333,20 @@ namespace PerformanceOverlay
             catch (SystemException)
             {
             }
+        }
+
+        private void ApplyOSDPosition()
+        {
+            var (x, y) = Settings.Default.OSDPosition switch
+            {
+                OverlayPosition.TopLeft => (OSDPositionMarginPixels, OSDPositionMarginPixels),
+                OverlayPosition.TopRight => (-OSDPositionMarginPixels, OSDPositionMarginPixels),
+                OverlayPosition.BottomLeft => (OSDPositionMarginPixels, -OSDPositionMarginPixels),
+                OverlayPosition.BottomRight => (-OSDPositionMarginPixels, -OSDPositionMarginPixels),
+                _ => (OSDPositionMarginPixels, OSDPositionMarginPixels)
+            };
+
+            RTSSOverlayPosition.TrySetCoordinates(x, y);
         }
 
         private void osdReset()

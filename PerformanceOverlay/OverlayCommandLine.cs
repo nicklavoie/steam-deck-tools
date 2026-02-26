@@ -12,6 +12,7 @@ namespace PerformanceOverlay
     internal enum OverlayControlCommandType
     {
         SetMode,
+        SetPosition,
         CycleMode,
         ToggleVisibility,
         Show,
@@ -22,16 +23,26 @@ namespace PerformanceOverlay
     {
         public OverlayControlCommandType CommandType { get; }
         public OverlayMode Mode { get; }
+        public OverlayPosition Position { get; }
 
-        private OverlayControlCommand(OverlayControlCommandType commandType, OverlayMode mode = OverlayMode.FPS)
+        private OverlayControlCommand(
+            OverlayControlCommandType commandType,
+            OverlayMode mode = OverlayMode.FPS,
+            OverlayPosition position = OverlayPosition.TopLeft)
         {
             CommandType = commandType;
             Mode = mode;
+            Position = position;
         }
 
         public static OverlayControlCommand SetMode(OverlayMode mode)
         {
             return new OverlayControlCommand(OverlayControlCommandType.SetMode, mode);
+        }
+
+        public static OverlayControlCommand SetPosition(OverlayPosition position)
+        {
+            return new OverlayControlCommand(OverlayControlCommandType.SetPosition, position: position);
         }
 
         public static OverlayControlCommand CycleMode()
@@ -144,6 +155,14 @@ namespace PerformanceOverlay
                 return true;
             }
 
+            if ((head.Equals("position", StringComparison.OrdinalIgnoreCase) || head.Equals("pos", StringComparison.OrdinalIgnoreCase))
+                && segments.Count > 1
+                && TryParsePosition(segments[1], out var uriPosition))
+            {
+                command = OverlayControlCommand.SetPosition(uriPosition);
+                return true;
+            }
+
             return false;
         }
 
@@ -192,6 +211,22 @@ namespace PerformanceOverlay
                     command = OverlayControlCommand.SetMode(nextMode);
                     return true;
                 }
+
+                if (arg.StartsWith("--position=", StringComparison.OrdinalIgnoreCase))
+                {
+                    var positionArg = arg["--position=".Length..];
+                    if (TryParsePosition(positionArg, out var inlinePosition))
+                    {
+                        command = OverlayControlCommand.SetPosition(inlinePosition);
+                        return true;
+                    }
+                }
+
+                if (arg.Equals("--position", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Length && TryParsePosition(args[i + 1], out var nextPosition))
+                {
+                    command = OverlayControlCommand.SetPosition(nextPosition);
+                    return true;
+                }
             }
 
             return false;
@@ -208,6 +243,35 @@ namespace PerformanceOverlay
                 case "fpsbattery":
                 case "fpswithbattery":
                     mode = OverlayMode.FPSWithBattery;
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        private static bool TryParsePosition(string value, out OverlayPosition position)
+        {
+            if (Enum.TryParse<OverlayPosition>(value, true, out position))
+                return true;
+
+            var normalized = value.Trim().Replace("-", "").Replace("_", "").ToLowerInvariant();
+            switch (normalized)
+            {
+                case "topleft":
+                case "tl":
+                    position = OverlayPosition.TopLeft;
+                    return true;
+                case "topright":
+                case "tr":
+                    position = OverlayPosition.TopRight;
+                    return true;
+                case "bottomleft":
+                case "bl":
+                    position = OverlayPosition.BottomLeft;
+                    return true;
+                case "bottomright":
+                case "br":
+                    position = OverlayPosition.BottomRight;
                     return true;
                 default:
                     return false;
@@ -239,6 +303,9 @@ namespace PerformanceOverlay
                 case OverlayControlCommandType.SetMode:
                     value.Desired = command.Mode;
                     value.DesiredEnabled = OverlayEnabled.Yes;
+                    return;
+                case OverlayControlCommandType.SetPosition:
+                    value.DesiredPosition = command.Position;
                     return;
                 case OverlayControlCommandType.CycleMode:
                     value.Desired = NextMode(CurrentMode(value));
@@ -283,6 +350,9 @@ namespace PerformanceOverlay
                 case OverlayControlCommandType.SetMode:
                     Settings.Default.OSDMode = command.Mode;
                     Settings.Default.ShowOSD = true;
+                    return;
+                case OverlayControlCommandType.SetPosition:
+                    Settings.Default.OSDPosition = command.Position;
                     return;
                 case OverlayControlCommandType.CycleMode:
                     Settings.Default.OSDMode = NextMode(Settings.Default.OSDMode);

@@ -22,6 +22,10 @@ It also supports command URIs (used by the Xbox Game Bar widget in this fork):
 - `steamdecktools-performanceoverlay://show`
 - `steamdecktools-performanceoverlay://hide`
 - `steamdecktools-performanceoverlay://toggle`
+- `steamdecktools-performanceoverlay://position/topleft`
+- `steamdecktools-performanceoverlay://position/topright`
+- `steamdecktools-performanceoverlay://position/bottomleft`
+- `steamdecktools-performanceoverlay://position/bottomright`
 
 Equivalent command-line switches are available:
 
@@ -30,6 +34,7 @@ Equivalent command-line switches are available:
 - `--show`
 - `--hide`
 - `--toggle`
+- `--position <topleft|topright|bottomleft|bottomright>`
 
 There are 5 modes of presentation:
 
