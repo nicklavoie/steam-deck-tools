@@ -16,62 +16,89 @@
                 Foreground="White"
                 Text="Performance Overlay" />
 
-            <Grid Margin="0,0,0,8">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-
-                <Button Grid.Row="0" Grid.Column="0" Margin="2" Click="CommandButton_Click" Tag="steamdecktools-performanceoverlay://mode/fps">FPS</Button>
-                <Button Grid.Row="0" Grid.Column="1" Margin="2" Click="CommandButton_Click" Tag="steamdecktools-performanceoverlay://mode/battery">Battery</Button>
-                <Button Grid.Row="0" Grid.Column="2" Margin="2" Click="CommandButton_Click" Tag="steamdecktools-performanceoverlay://mode/fpswithbattery">FPS + Battery</Button>
-
-                <Button Grid.Row="1" Grid.Column="0" Margin="2" Click="CommandButton_Click" Tag="steamdecktools-performanceoverlay://mode/minimal">Minimal</Button>
-                <Button Grid.Row="1" Grid.Column="1" Margin="2" Click="CommandButton_Click" Tag="steamdecktools-performanceoverlay://mode/detail">Detail</Button>
-                <Button Grid.Row="1" Grid.Column="2" Margin="2" Click="CommandButton_Click" Tag="steamdecktools-performanceoverlay://mode/full">Full</Button>
-            </Grid>
-
             <Border
                 Margin="0,0,0,8"
-                Padding="4"
-                Background="#2A3F55"
+                Padding="6"
+                Background="#20354A"
                 CornerRadius="6">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock
+                        Margin="2,0,2,4"
+                        Foreground="#BFE6FF"
+                        FontWeight="SemiBold"
+                        Text="Display Mode" />
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
 
-                    <Button Grid.Column="0" Margin="2" Click="CommandButton_Click" Tag="steamdecktools-performanceoverlay://mode/fps">Quick Reset</Button>
-                    <Button Grid.Column="1" Margin="2" Click="CommandButton_Click" Tag="steamdecktools-performanceoverlay://toggle">Toggle</Button>
-                </Grid>
+                        <Button Grid.Row="0" Grid.Column="0" Margin="2" Click="CommandButton_Click" Tag="steamdecktools-performanceoverlay://mode/fps">FPS</Button>
+                        <Button Grid.Row="0" Grid.Column="1" Margin="2" Click="CommandButton_Click" Tag="steamdecktools-performanceoverlay://mode/battery">Battery</Button>
+                        <Button Grid.Row="0" Grid.Column="2" Margin="2" Click="CommandButton_Click" Tag="steamdecktools-performanceoverlay://mode/fpswithbattery">FPS + Battery</Button>
+
+                        <Button Grid.Row="1" Grid.Column="0" Margin="2" Click="CommandButton_Click" Tag="steamdecktools-performanceoverlay://mode/minimal">Minimal</Button>
+                        <Button Grid.Row="1" Grid.Column="1" Margin="2" Click="CommandButton_Click" Tag="steamdecktools-performanceoverlay://mode/detail">Detail</Button>
+                        <Button Grid.Row="1" Grid.Column="2" Margin="2" Click="CommandButton_Click" Tag="steamdecktools-performanceoverlay://mode/full">Full</Button>
+                    </Grid>
+                </StackPanel>
             </Border>
 
             <Border
                 Margin="0,0,0,8"
-                Padding="4"
-                Background="#2A3F55"
+                Padding="6"
+                Background="#24412E"
                 CornerRadius="6">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock
+                        Margin="2,0,2,4"
+                        Foreground="#C4F7D4"
+                        FontWeight="SemiBold"
+                        Text="Quick Actions" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
 
-                    <Button Grid.Row="0" Grid.Column="0" Margin="2" Click="CommandButton_Click" Tag="steamdecktools-performanceoverlay://position/topleft">Top Left</Button>
-                    <Button Grid.Row="0" Grid.Column="1" Margin="2" Click="CommandButton_Click" Tag="steamdecktools-performanceoverlay://position/topright">Top Right</Button>
-                    <Button Grid.Row="1" Grid.Column="0" Margin="2" Click="CommandButton_Click" Tag="steamdecktools-performanceoverlay://position/bottomleft">Bottom Left</Button>
-                    <Button Grid.Row="1" Grid.Column="1" Margin="2" Click="CommandButton_Click" Tag="steamdecktools-performanceoverlay://position/bottomright">Bottom Right</Button>
-                </Grid>
+                        <Button Grid.Column="0" Margin="2" Click="CommandButton_Click" Tag="steamdecktools-performanceoverlay://mode/fps">Quick Reset</Button>
+                        <Button Grid.Column="1" Margin="2" Click="CommandButton_Click" Tag="steamdecktools-performanceoverlay://toggle">Toggle</Button>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <Border
+                Margin="0,0,0,8"
+                Padding="6"
+                Background="#4A321E"
+                CornerRadius="6">
+                <StackPanel>
+                    <TextBlock
+                        Margin="2,0,2,4"
+                        Foreground="#FFE0C4"
+                        FontWeight="SemiBold"
+                        Text="Overlay Position" />
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Button Grid.Row="0" Grid.Column="0" Margin="2" Click="CommandButton_Click" Tag="steamdecktools-performanceoverlay://position/topleft">Top Left</Button>
+                        <Button Grid.Row="0" Grid.Column="1" Margin="2" Click="CommandButton_Click" Tag="steamdecktools-performanceoverlay://position/topright">Top Right</Button>
+                        <Button Grid.Row="1" Grid.Column="0" Margin="2" Click="CommandButton_Click" Tag="steamdecktools-performanceoverlay://position/bottomleft">Bottom Left</Button>
+                        <Button Grid.Row="1" Grid.Column="1" Margin="2" Click="CommandButton_Click" Tag="steamdecktools-performanceoverlay://position/bottomright">Bottom Right</Button>
+                    </Grid>
+                </StackPanel>
             </Border>
 
             <TextBlock
