@@ -8,7 +8,6 @@ namespace PerformanceOverlay
     internal class Controller : IDisposable
     {
         private const int OSDPositionMarginPixels = 5;
-        private const string RTSSGlobalProfile = "Global";
 
         public const String Title = "Performance Overlay";
         public static readonly String TitleWithVersion = Title + " v" + System.Windows.Forms.Application.ProductVersion.ToString();
@@ -20,7 +19,6 @@ namespace PerformanceOverlay
         System.Windows.Forms.NotifyIcon notifyIcon;
         System.Windows.Forms.Timer osdTimer;
         Sensors sensors = new Sensors();
-        OverlayPosition? appliedOSDPosition;
         StartupManager startupManager = new StartupManager(
             Title,
             "Starts Performance Overlay on Windows startup."
@@ -339,9 +337,6 @@ namespace PerformanceOverlay
 
         private void ApplyOSDPosition()
         {
-            if (appliedOSDPosition == Settings.Default.OSDPosition)
-                return;
-
             var (x, y) = Settings.Default.OSDPosition switch
             {
                 OverlayPosition.TopLeft => (OSDPositionMarginPixels, OSDPositionMarginPixels),
@@ -351,39 +346,7 @@ namespace PerformanceOverlay
                 _ => (OSDPositionMarginPixels, OSDPositionMarginPixels)
             };
 
-            var applied = TryApplyOSDPositionViaProfile(x, y)
-                || RTSSOverlayPosition.TrySetCoordinates(x, y);
-
-            if (applied)
-                appliedOSDPosition = Settings.Default.OSDPosition;
-        }
-
-        private static bool TryApplyOSDPositionViaProfile(int x, int y)
-        {
-            try
-            {
-                RTSS.LoadProfile(RTSSGlobalProfile);
-                if (!RTSS.SetProfileProperty<int>("PositionX", x))
-                    return false;
-
-                if (!RTSS.SetProfileProperty<int>("PositionY", y))
-                    return false;
-
-                if (!RTSS.GetProfileProperty<int>("PositionX", out var currentX) || currentX != x)
-                    return false;
-
-                if (!RTSS.GetProfileProperty<int>("PositionY", out var currentY) || currentY != y)
-                    return false;
-
-                RTSS.SaveProfile(RTSSGlobalProfile);
-                RTSS.UpdateProfiles();
-                RTSS.UpdateSettings();
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
+            RTSSOverlayPosition.TrySetCoordinates(x, y);
         }
 
         private void osdReset()

@@ -55,9 +55,9 @@
                 <PinningSupported>true</PinningSupported>
                 <Window>
                   <Size>
-                    <Height>430</Height>
+                    <Height>380</Height>
                     <Width>420</Width>
-                    <MinHeight>360</MinHeight>
+                    <MinHeight>300</MinHeight>
                     <MinWidth>320</MinWidth>
                     <MaxHeight>500</MaxHeight>
                     <MaxWidth>700</MaxWidth>

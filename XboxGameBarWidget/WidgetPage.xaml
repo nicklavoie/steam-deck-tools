@@ -88,19 +88,13 @@
                         FontWeight="SemiBold"
                         Text="Overlay Position" />
                     <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
 
-                        <Button Grid.Row="0" Grid.Column="0" Margin="2" Click="CommandButton_Click" Tag="steamdecktools-performanceoverlay://position/topleft">Top Left</Button>
-                        <Button Grid.Row="0" Grid.Column="1" Margin="2" Click="CommandButton_Click" Tag="steamdecktools-performanceoverlay://position/topright">Top Right</Button>
-                        <Button Grid.Row="1" Grid.Column="0" Margin="2" Click="CommandButton_Click" Tag="steamdecktools-performanceoverlay://position/bottomleft">Bottom Left</Button>
-                        <Button Grid.Row="1" Grid.Column="1" Margin="2" Click="CommandButton_Click" Tag="steamdecktools-performanceoverlay://position/bottomright">Bottom Right</Button>
+                        <Button Grid.Column="0" Margin="2" Click="CommandButton_Click" Tag="steamdecktools-performanceoverlay://position/topleft">Top</Button>
+                        <Button Grid.Column="1" Margin="2" Click="CommandButton_Click" Tag="steamdecktools-performanceoverlay://position/bottomright">Bottom</Button>
                     </Grid>
                 </StackPanel>
             </Border>
